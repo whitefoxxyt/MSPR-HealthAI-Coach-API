@@ -1,7 +1,7 @@
 package fr.epsi.healthaicoachapi.controller;
 
-import fr.epsi.healthaicoachapi.entity.Exercise;
-import fr.epsi.healthaicoachapi.repository.ExerciseRepository;
+import fr.epsi.healthaicoachapi.dto.ExerciseDTO;
+import fr.epsi.healthaicoachapi.service.ExerciseService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -16,25 +16,24 @@ import org.springframework.web.bind.annotation.*;
 @SecurityRequirement(name = "bearer-jwt")
 public class ExerciseController {
 
-    private final ExerciseRepository exerciseRepository;
+    private final ExerciseService exerciseService;
 
-    public ExerciseController(ExerciseRepository exerciseRepository) {
-        this.exerciseRepository = exerciseRepository;
+    public ExerciseController(ExerciseService exerciseService) {
+        this.exerciseService = exerciseService;
     }
 
     @GetMapping
     @Operation(summary = "Liste tous les exercices")
-    public ResponseEntity<Page<Exercise>> getAllExercises(Pageable pageable) {
-        Page<Exercise> exercises = exerciseRepository.findAll(pageable);
+    public ResponseEntity<Page<ExerciseDTO>> getAllExercises(Pageable pageable) {
+        Page<ExerciseDTO> exercises = exerciseService.getAllExercises(pageable);
         return ResponseEntity.ok(exercises);
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Récupère un exercice par ID")
-    public ResponseEntity<Exercise> getExerciseById(@PathVariable Long id) {
-        return exerciseRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<ExerciseDTO> getExerciseById(@PathVariable Long id) {
+        ExerciseDTO exercise = exerciseService.getExerciseById(id);
+        return ResponseEntity.ok(exercise);
     }
 }
 

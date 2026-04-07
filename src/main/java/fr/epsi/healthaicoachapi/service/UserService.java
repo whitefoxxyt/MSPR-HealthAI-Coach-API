@@ -2,6 +2,7 @@ package fr.epsi.healthaicoachapi.service;
 
 import fr.epsi.healthaicoachapi.dto.UserDTO;
 import fr.epsi.healthaicoachapi.entity.User;
+import fr.epsi.healthaicoachapi.exception.ResourceNotFoundException;
 import fr.epsi.healthaicoachapi.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,21 +25,21 @@ public class UserService {
     @Transactional
     public UserDTO getUserById(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId));
         return mapToDTO(user);
     }
 
     @Transactional
     public UserDTO getUserByEmail(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User with email " + email + " not found"));
         return mapToDTO(user);
     }
 
     @Transactional
     public UserDTO updateLastActivity(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User with email " + email + " not found"));
         user.setLastActivity(LocalDateTime.now());
         User updated = userRepository.save(user);
         return mapToDTO(updated);
@@ -47,7 +48,7 @@ public class UserService {
     @Transactional
     public UserDTO updateUserProfile(Long userId, UserDTO userDTO) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId));
 
         if (userDTO.getAge() != null) {
             user.setAge(userDTO.getAge());

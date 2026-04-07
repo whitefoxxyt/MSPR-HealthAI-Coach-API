@@ -16,6 +16,66 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex, WebRequest request) {
+        log.error("ResourceNotFoundException: {}", ex.getMessage());
+        ErrorResponse error = ErrorResponse.of(
+                HttpStatus.NOT_FOUND,
+                ex.getMessage(),
+                "Resource not found",
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(UnauthorizedAccessException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorizedAccessException(UnauthorizedAccessException ex, WebRequest request) {
+        log.error("UnauthorizedAccessException: {}", ex.getMessage());
+        ErrorResponse error = ErrorResponse.of(
+                HttpStatus.FORBIDDEN,
+                ex.getMessage(),
+                "Access denied",
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(EmailAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleEmailAlreadyExistsException(EmailAlreadyExistsException ex, WebRequest request) {
+        log.error("EmailAlreadyExistsException: {}", ex.getMessage());
+        ErrorResponse error = ErrorResponse.of(
+                HttpStatus.CONFLICT,
+                ex.getMessage(),
+                "Email already exists",
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(UsernameAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleUsernameAlreadyExistsException(UsernameAlreadyExistsException ex, WebRequest request) {
+        log.error("UsernameAlreadyExistsException: {}", ex.getMessage());
+        ErrorResponse error = ErrorResponse.of(
+                HttpStatus.CONFLICT,
+                ex.getMessage(),
+                "Username already exists",
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidCredentialsException(InvalidCredentialsException ex, WebRequest request) {
+        log.error("InvalidCredentialsException: {}", ex.getMessage());
+        ErrorResponse error = ErrorResponse.of(
+                HttpStatus.UNAUTHORIZED,
+                ex.getMessage(),
+                "Invalid credentials",
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex, WebRequest request) {
         log.error("RuntimeException: {}", ex.getMessage());
