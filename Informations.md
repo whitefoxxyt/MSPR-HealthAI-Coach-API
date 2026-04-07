@@ -703,6 +703,31 @@ Supprime une mesure biométrique.
 
 ## 🗄️ Base de données
 
+### Architecture centralisée
+
+**Important** : Les migrations de base de données sont centralisées dans le dépôt `MSPR-HealthAI-Coach-BDD`.
+
+L'API HealthAI Coach :
+- Se connecte à une base PostgreSQL déjà initialisée
+- Utilise `spring.jpa.hibernate.ddl-auto=validate` (validation du schéma)
+- **Ne gère PAS** les migrations (Flyway désactivé)
+
+### Démarrage de la base de données
+
+**Option 1 - Avec Docker (recommandé)** :
+```bash
+cd MSPR-HealthAI-Coach-BDD
+docker compose up -d
+```
+
+**Option 2 - PostgreSQL local** :
+Exécutez manuellement les migrations depuis `MSPR-HealthAI-Coach-BDD/migrations/` :
+```bash
+psql -U healthai_user -d healthai -f V1__init_schema.sql
+psql -U healthai_user -d healthai -f V2__diet_recommendations.sql
+psql -U healthai_user -d healthai -f V3__add_unique_constraints.sql
+```
+
 ### Schéma PostgreSQL
 
 #### Table `users`
@@ -803,14 +828,21 @@ CREATE TABLE biometric_entries (
 );
 ```
 
-### Migrations Flyway
+### Migrations
 
-Les migrations SQL se trouvent dans `/src/main/resources/db/migration/` :
-- `V1__create_users_table.sql`
-- `V2__create_exercises_table.sql`
-- `V3__create_exercise_entries_table.sql`
-- `V4__create_nutrition_entries_table.sql`
-- `V5__create_biometric_entries_table.sql`
+**Les migrations SQL sont gérées par le repo `MSPR-HealthAI-Coach-BDD`.**
+
+Localisation : `MSPR-HealthAI-Coach-BDD/migrations/`
+
+| Fichier | Contenu |
+|---------|---------|
+| `V1__init_schema.sql` | Schema principal : users, exercises, nutrition_entries, exercise_entries, biometric_entries, etl_logs |
+| `V2__diet_recommendations.sql` | Table diet_recommendations |
+| `V3__add_unique_constraints.sql` | Contraintes d'unicité pour les ON CONFLICT |
+
+Les migrations sont exécutées automatiquement au premier démarrage de la base via `docker-entrypoint-initdb.d`.
+
+**Note** : L'API n'utilise **pas** Flyway. La configuration `spring.flyway.enabled=false` est définie.
 
 ---
 

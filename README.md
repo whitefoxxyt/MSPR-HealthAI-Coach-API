@@ -19,8 +19,10 @@ API REST
 ├── Nutrition Tracking
 ├── Workout Tracking
 ├── Biometric Tracking
-└── PostgreSQL Database
+└── PostgreSQL Database (voir MSPR-HealthAI-Coach-BDD)
 ```
+
+**Note importante** : Les migrations de base de données sont centralisées dans le repo `MSPR-HealthAI-Coach-BDD`. L'API se connecte à une base déjà initialisée.
 
 ## Configuration
 
@@ -47,16 +49,36 @@ JWT_SECRET=your_secret_key_min_32_chars
 
 ## Installation et démarrage
 
-### Prérequis locaux
+### Prérequis
 
 - Java 21
 - Maven 3.9+
-- PostgreSQL 16
+- PostgreSQL 16 (ou utiliser le repo `MSPR-HealthAI-Coach-BDD`)
 
-### Démarrage local
+### Démarrage de la base de données
+
+**Important** : Avant de démarrer l'API, vous devez avoir une base PostgreSQL opérationnelle avec le schéma HealthAI.
+
+**Option 1 - Avec Docker (recommandé)** :
+```bash
+# Depuis la racine du projet
+cd ../MSPR-HealthAI-Coach-BDD
+docker compose up -d
+# Attendez que le healthcheck passe
+```
+
+**Option 2 - PostgreSQL local** :
+```bash
+# Exécutez manuellement les migrations depuis MSPR-HealthAI-Coach-BDD/migrations/
+psql -U healthai_user -d healthai -f ../MSPR-HealthAI-Coach-BDD/migrations/V1__init_schema.sql
+psql -U healthai_user -d healthai -f ../MSPR-HealthAI-Coach-BDD/migrations/V2__diet_recommendations.sql
+psql -U healthai_user -d healthai -f ../MSPR-HealthAI-Coach-BDD/migrations/V3__add_unique_constraints.sql
+```
+
+### Démarrage de l'API
 
 ```bash
-cd API
+cd MSPR-HealthAI-Coach-API
 
 # Compiler le projet
 mvn clean install
@@ -68,8 +90,12 @@ mvn spring-boot:run -Dspring-boot.run.arguments="--spring.profiles.active=dev"
 ### Démarrage avec Docker
 
 ```bash
-# Depuis la racine du projet
-docker compose up db -d
+# 1. Démarrer d'abord la base de données
+cd ../MSPR-HealthAI-Coach-BDD
+docker compose up -d
+
+# 2. Puis démarrer l'API
+cd ../MSPR-HealthAI-Coach-API
 docker compose --profile api up -d
 ```
 
