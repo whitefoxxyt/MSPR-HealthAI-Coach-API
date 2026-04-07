@@ -28,8 +28,8 @@ public class UserController {
     @GetMapping("/me")
     @Operation(summary = "Récupère le profil de l'utilisateur connecté")
     public ResponseEntity<UserDTO> getCurrentUser() {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        UserDTO user = userService.getUserByEmail(email);
+        String authUserId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserDTO user = userService.getUserByAuthUserId(authUserId);
         return ResponseEntity.ok(user);
     }
 
@@ -51,8 +51,8 @@ public class UserController {
     @PutMapping("/me/activity")
     @Operation(summary = "Met à jour la dernière activité de l'utilisateur")
     public ResponseEntity<UserDTO> updateLastActivity() {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        UserDTO updated = userService.updateLastActivity(email);
+        String authUserId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserDTO updated = userService.updateLastActivity(authUserId);
         return ResponseEntity.ok(updated);
     }
 }

@@ -32,40 +32,40 @@ public class NutritionController {
     @GetMapping("/user/{userId}")
     @Operation(summary = "Liste les entrées nutritionnelles d'un utilisateur")
     public ResponseEntity<List<NutritionEntryDTO>> getUserNutritionEntries(@PathVariable Long userId) {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        List<NutritionEntryDTO> entries = nutritionService.getUserNutritionEntries(userId, email);
+        String authUserId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        List<NutritionEntryDTO> entries = nutritionService.getUserNutritionEntries(userId, authUserId);
         return ResponseEntity.ok(entries);
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Récupère une entrée nutritionnelle par ID")
     public ResponseEntity<NutritionEntryDTO> getNutritionEntryById(@PathVariable Long id) {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        NutritionEntryDTO entry = nutritionService.getNutritionEntryById(id, email);
+        String authUserId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        NutritionEntryDTO entry = nutritionService.getNutritionEntryById(id, authUserId);
         return ResponseEntity.ok(entry);
     }
 
     @PostMapping
     @Operation(summary = "Crée une nouvelle entrée nutritionnelle")
     public ResponseEntity<NutritionEntryDTO> createNutritionEntry(@Valid @RequestBody NutritionEntryDTO dto) {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        NutritionEntryDTO saved = nutritionService.createNutritionEntry(dto, email);
+        String authUserId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        NutritionEntryDTO saved = nutritionService.createNutritionEntry(dto, authUserId);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Met à jour une entrée nutritionnelle")
     public ResponseEntity<NutritionEntryDTO> updateNutritionEntry(@PathVariable Long id, @Valid @RequestBody NutritionEntryDTO dto) {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        NutritionEntryDTO updated = nutritionService.updateNutritionEntry(id, dto, email);
+        String authUserId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        NutritionEntryDTO updated = nutritionService.updateNutritionEntry(id, dto, authUserId);
         return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Supprime une entrée nutritionnelle")
     public ResponseEntity<Void> deleteNutritionEntry(@PathVariable Long id) {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        nutritionService.deleteNutritionEntry(id, email);
+        String authUserId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        nutritionService.deleteNutritionEntry(id, authUserId);
         return ResponseEntity.noContent().build();
     }
 }

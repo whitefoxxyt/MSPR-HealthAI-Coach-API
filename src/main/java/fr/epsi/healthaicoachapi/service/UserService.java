@@ -30,16 +30,16 @@ public class UserService {
     }
 
     @Transactional
-    public UserDTO getUserByEmail(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User with email " + email + " not found"));
+    public UserDTO getUserByAuthUserId(String authUserId) {
+        User user = userRepository.findByAuthUserId(authUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("User with authUserId " + authUserId + " not found"));
         return mapToDTO(user);
     }
 
     @Transactional
-    public UserDTO updateLastActivity(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User with email " + email + " not found"));
+    public UserDTO updateLastActivity(String authUserId) {
+        User user = userRepository.findByAuthUserId(authUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("User with authUserId " + authUserId + " not found"));
         user.setLastActivity(LocalDateTime.now());
         User updated = userRepository.save(user);
         return mapToDTO(updated);
@@ -74,10 +74,8 @@ public class UserService {
     private UserDTO mapToDTO(User user) {
         return UserDTO.builder()
                 .id(user.getId())
-                .email(user.getEmail())
-                .username(user.getAccountUsername())
-                .role(user.getRole())
-                .isPremium(user.getIsPremium())
+                .authUserId(user.getAuthUserId())
+                .username(user.getUsername())
                 .age(user.getAge())
                 .gender(user.getGender())
                 .weightKg(user.getWeightKg())
@@ -88,4 +86,3 @@ public class UserService {
                 .build();
     }
 }
-

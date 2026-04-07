@@ -40,42 +40,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
     }
 
-    @ExceptionHandler(EmailAlreadyExistsException.class)
-    public ResponseEntity<ErrorResponse> handleEmailAlreadyExistsException(EmailAlreadyExistsException ex, WebRequest request) {
-        log.error("EmailAlreadyExistsException: {}", ex.getMessage());
-        ErrorResponse error = ErrorResponse.of(
-                HttpStatus.CONFLICT,
-                ex.getMessage(),
-                "Email already exists",
-                request.getDescription(false).replace("uri=", "")
-        );
-        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
-    }
-
-    @ExceptionHandler(UsernameAlreadyExistsException.class)
-    public ResponseEntity<ErrorResponse> handleUsernameAlreadyExistsException(UsernameAlreadyExistsException ex, WebRequest request) {
-        log.error("UsernameAlreadyExistsException: {}", ex.getMessage());
-        ErrorResponse error = ErrorResponse.of(
-                HttpStatus.CONFLICT,
-                ex.getMessage(),
-                "Username already exists",
-                request.getDescription(false).replace("uri=", "")
-        );
-        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
-    }
-
-    @ExceptionHandler(InvalidCredentialsException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidCredentialsException(InvalidCredentialsException ex, WebRequest request) {
-        log.error("InvalidCredentialsException: {}", ex.getMessage());
-        ErrorResponse error = ErrorResponse.of(
-                HttpStatus.UNAUTHORIZED,
-                ex.getMessage(),
-                "Invalid credentials",
-                request.getDescription(false).replace("uri=", "")
-        );
-        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
-    }
-
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex, WebRequest request) {
         log.error("RuntimeException: {}", ex.getMessage());
@@ -124,4 +88,3 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
-

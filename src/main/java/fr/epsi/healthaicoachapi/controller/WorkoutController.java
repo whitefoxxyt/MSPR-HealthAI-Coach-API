@@ -32,40 +32,40 @@ public class WorkoutController {
     @GetMapping("/user/{userId}")
     @Operation(summary = "Liste les séances d'exercice d'un utilisateur")
     public ResponseEntity<List<ExerciseEntryDTO>> getUserWorkouts(@PathVariable Long userId) {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        List<ExerciseEntryDTO> entries = workoutService.getUserWorkouts(userId, email);
+        String authUserId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        List<ExerciseEntryDTO> entries = workoutService.getUserWorkouts(userId, authUserId);
         return ResponseEntity.ok(entries);
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Récupère une séance d'exercice par ID")
     public ResponseEntity<ExerciseEntryDTO> getWorkoutById(@PathVariable Long id) {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        ExerciseEntryDTO entry = workoutService.getWorkoutById(id, email);
+        String authUserId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        ExerciseEntryDTO entry = workoutService.getWorkoutById(id, authUserId);
         return ResponseEntity.ok(entry);
     }
 
     @PostMapping
     @Operation(summary = "Crée une nouvelle séance d'exercice")
     public ResponseEntity<ExerciseEntryDTO> createWorkout(@Valid @RequestBody ExerciseEntryDTO dto) {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        ExerciseEntryDTO saved = workoutService.createWorkout(dto, email);
+        String authUserId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        ExerciseEntryDTO saved = workoutService.createWorkout(dto, authUserId);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Met à jour une séance d'exercice")
     public ResponseEntity<ExerciseEntryDTO> updateWorkout(@PathVariable Long id, @Valid @RequestBody ExerciseEntryDTO dto) {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        ExerciseEntryDTO updated = workoutService.updateWorkout(id, dto, email);
+        String authUserId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        ExerciseEntryDTO updated = workoutService.updateWorkout(id, dto, authUserId);
         return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Supprime une séance d'exercice")
     public ResponseEntity<Void> deleteWorkout(@PathVariable Long id) {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        workoutService.deleteWorkout(id, email);
+        String authUserId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        workoutService.deleteWorkout(id, authUserId);
         return ResponseEntity.noContent().build();
     }
 }

@@ -29,10 +29,10 @@ public class NutritionService {
     }
 
     @Transactional(readOnly = true)
-    public List<NutritionEntryDTO> getUserNutritionEntries(Long userId, String authenticatedUserEmail) {
-        User authenticatedUser = getUserByEmail(authenticatedUserEmail);
+    public List<NutritionEntryDTO> getUserNutritionEntries(Long userId, String authUserId) {
+        User authenticatedUser = getUserByAuthUserId(authUserId);
         
-        if (!authenticatedUser.getId().equals(userId) && !"ADMIN".equals(authenticatedUser.getRole())) {
+        if (!authenticatedUser.getId().equals(userId)) {
             throw new UnauthorizedAccessException("You can only access your own nutrition data");
         }
 
@@ -41,13 +41,13 @@ public class NutritionService {
     }
 
     @Transactional(readOnly = true)
-    public NutritionEntryDTO getNutritionEntryById(Long id, String authenticatedUserEmail) {
+    public NutritionEntryDTO getNutritionEntryById(Long id, String authUserId) {
         NutritionEntry entry = nutritionEntryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Nutrition entry", id));
 
-        User authenticatedUser = getUserByEmail(authenticatedUserEmail);
+        User authenticatedUser = getUserByAuthUserId(authUserId);
         
-        if (!entry.getUser().getId().equals(authenticatedUser.getId()) && !"ADMIN".equals(authenticatedUser.getRole())) {
+        if (!entry.getUser().getId().equals(authenticatedUser.getId())) {
             throw new UnauthorizedAccessException();
         }
 
@@ -55,10 +55,10 @@ public class NutritionService {
     }
 
     @Transactional
-    public NutritionEntryDTO createNutritionEntry(NutritionEntryDTO dto, String authenticatedUserEmail) {
-        User authenticatedUser = getUserByEmail(authenticatedUserEmail);
+    public NutritionEntryDTO createNutritionEntry(NutritionEntryDTO dto, String authUserId) {
+        User authenticatedUser = getUserByAuthUserId(authUserId);
         
-        if (!authenticatedUser.getId().equals(dto.getUserId()) && !"ADMIN".equals(authenticatedUser.getRole())) {
+        if (!authenticatedUser.getId().equals(dto.getUserId())) {
             throw new UnauthorizedAccessException("You can only create nutrition entries for yourself");
         }
 
@@ -89,13 +89,13 @@ public class NutritionService {
     }
 
     @Transactional
-    public NutritionEntryDTO updateNutritionEntry(Long id, NutritionEntryDTO dto, String authenticatedUserEmail) {
+    public NutritionEntryDTO updateNutritionEntry(Long id, NutritionEntryDTO dto, String authUserId) {
         NutritionEntry entry = nutritionEntryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Nutrition entry", id));
 
-        User authenticatedUser = getUserByEmail(authenticatedUserEmail);
+        User authenticatedUser = getUserByAuthUserId(authUserId);
         
-        if (!entry.getUser().getId().equals(authenticatedUser.getId()) && !"ADMIN".equals(authenticatedUser.getRole())) {
+        if (!entry.getUser().getId().equals(authenticatedUser.getId())) {
             throw new UnauthorizedAccessException();
         }
 
@@ -120,13 +120,13 @@ public class NutritionService {
     }
 
     @Transactional
-    public void deleteNutritionEntry(Long id, String authenticatedUserEmail) {
+    public void deleteNutritionEntry(Long id, String authUserId) {
         NutritionEntry entry = nutritionEntryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Nutrition entry", id));
 
-        User authenticatedUser = getUserByEmail(authenticatedUserEmail);
+        User authenticatedUser = getUserByAuthUserId(authUserId);
         
-        if (!entry.getUser().getId().equals(authenticatedUser.getId()) && !"ADMIN".equals(authenticatedUser.getRole())) {
+        if (!entry.getUser().getId().equals(authenticatedUser.getId())) {
             throw new UnauthorizedAccessException();
         }
 
@@ -156,8 +156,8 @@ public class NutritionService {
                 .build();
     }
 
-    private User getUserByEmail(String email) {
-        return userRepository.findByEmail(email)
+    private User getUserByAuthUserId(String authUserId) {
+        return userRepository.findByAuthUserId(authUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 }

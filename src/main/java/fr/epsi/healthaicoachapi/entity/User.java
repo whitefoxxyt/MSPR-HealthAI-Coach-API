@@ -1,35 +1,22 @@
 package fr.epsi.healthaicoachapi.entity;
 
 import jakarta.persistence.*;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Collections;
 
 @Entity
 @Table(name = "users")
-public class User implements UserDetails {
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(unique = true, nullable = false)
-    private String email;
+    private String authUserId;
 
     @Column(nullable = false)
     private String username;
-
-    @Column(nullable = false)
-    private String passwordHash;
-
-    @Column(nullable = false)
-    private String role = "USER";
-
-    @Column(nullable = false)
-    private Boolean isPremium = false;
 
     private Integer age;
     private String gender;
@@ -45,15 +32,12 @@ public class User implements UserDetails {
     public User() {
     }
 
-    public User(Long id, String email, String username, String passwordHash, String role, Boolean isPremium, Integer age,
-                String gender, Double weightKg, Double heightCm, String objective, LocalDateTime createdAt,
-                LocalDateTime lastActivity) {
+    public User(Long id, String authUserId, String username, Integer age, String gender,
+                Double weightKg, Double heightCm, String objective,
+                LocalDateTime createdAt, LocalDateTime lastActivity) {
         this.id = id;
-        this.email = email;
+        this.authUserId = authUserId;
         this.username = username;
-        this.passwordHash = passwordHash;
-        this.role = role;
-        this.isPremium = isPremium;
         this.age = age;
         this.gender = gender;
         this.weightKg = weightKg;
@@ -75,44 +59,20 @@ public class User implements UserDetails {
         this.id = id;
     }
 
-    public String getEmail() {
-        return email;
+    public String getAuthUserId() {
+        return authUserId;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setAuthUserId(String authUserId) {
+        this.authUserId = authUserId;
     }
 
-    public String getAccountUsername() {
+    public String getUsername() {
         return username;
     }
 
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    public String getPasswordHash() {
-        return passwordHash;
-    }
-
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    public Boolean getIsPremium() {
-        return isPremium;
-    }
-
-    public void setIsPremium(Boolean premium) {
-        isPremium = premium;
     }
 
     public Integer getAge() {
@@ -171,48 +131,10 @@ public class User implements UserDetails {
         this.lastActivity = lastActivity;
     }
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public String getPassword() {
-        return passwordHash;
-    }
-
-    @Override
-    public String getUsername() {
-        return email;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
-
     public static class Builder {
         private Long id;
-        private String email;
+        private String authUserId;
         private String username;
-        private String passwordHash;
-        private String role = "USER";
-        private Boolean isPremium = false;
         private Integer age;
         private String gender;
         private Double weightKg;
@@ -226,28 +148,13 @@ public class User implements UserDetails {
             return this;
         }
 
-        public Builder email(String email) {
-            this.email = email;
+        public Builder authUserId(String authUserId) {
+            this.authUserId = authUserId;
             return this;
         }
 
         public Builder username(String username) {
             this.username = username;
-            return this;
-        }
-
-        public Builder passwordHash(String passwordHash) {
-            this.passwordHash = passwordHash;
-            return this;
-        }
-
-        public Builder role(String role) {
-            this.role = role;
-            return this;
-        }
-
-        public Builder isPremium(Boolean isPremium) {
-            this.isPremium = isPremium;
             return this;
         }
 
@@ -287,8 +194,8 @@ public class User implements UserDetails {
         }
 
         public User build() {
-            return new User(id, email, username, passwordHash, role, isPremium, age, gender, weightKg, heightCm,
-                    objective, createdAt, lastActivity);
+            return new User(id, authUserId, username, age, gender, weightKg, heightCm, objective, createdAt,
+                    lastActivity);
         }
     }
 }

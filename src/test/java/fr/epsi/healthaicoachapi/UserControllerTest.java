@@ -36,13 +36,15 @@ class UserControllerTest {
     @InjectMocks
     private UserController userController;
 
+    private static final String AUTH_USER_ID = "auth-user-uuid-123";
+
     private UserDTO testUser;
 
     @BeforeEach
     void setUp() {
         testUser = new UserDTO();
         testUser.setId(1L);
-        testUser.setEmail("test@example.com");
+        testUser.setAuthUserId(AUTH_USER_ID);
         testUser.setUsername("testuser");
         testUser.setAge(25);
         testUser.setGender("M");
@@ -56,9 +58,9 @@ class UserControllerTest {
     void testGetCurrentUser_Success() {
         // Given
         when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn("test@example.com");
+        when(authentication.getPrincipal()).thenReturn(AUTH_USER_ID);
         SecurityContextHolder.setContext(securityContext);
-        when(userService.getUserByEmail("test@example.com")).thenReturn(testUser);
+        when(userService.getUserByAuthUserId(AUTH_USER_ID)).thenReturn(testUser);
 
         // When
         ResponseEntity<UserDTO> response = userController.getCurrentUser();
@@ -67,9 +69,9 @@ class UserControllerTest {
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals("test@example.com", response.getBody().getEmail());
+        assertEquals(AUTH_USER_ID, response.getBody().getAuthUserId());
         assertEquals("testuser", response.getBody().getUsername());
-        verify(userService, times(1)).getUserByEmail("test@example.com");
+        verify(userService, times(1)).getUserByAuthUserId(AUTH_USER_ID);
     }
 
     @Test
@@ -86,7 +88,7 @@ class UserControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(1L, response.getBody().getId());
-        assertEquals("test@example.com", response.getBody().getEmail());
+        assertEquals(AUTH_USER_ID, response.getBody().getAuthUserId());
         verify(userService, times(1)).getUserById(1L);
     }
 
@@ -101,7 +103,7 @@ class UserControllerTest {
 
         UserDTO updatedUser = new UserDTO();
         updatedUser.setId(1L);
-        updatedUser.setEmail("test@example.com");
+        updatedUser.setAuthUserId(AUTH_USER_ID);
         updatedUser.setUsername("updateduser");
         updatedUser.setAge(26);
         updatedUser.setWeightKg(74.0);
@@ -125,9 +127,9 @@ class UserControllerTest {
     void testUpdateLastActivity_Success() {
         // Given
         when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn("test@example.com");
+        when(authentication.getPrincipal()).thenReturn(AUTH_USER_ID);
         SecurityContextHolder.setContext(securityContext);
-        when(userService.updateLastActivity("test@example.com")).thenReturn(testUser);
+        when(userService.updateLastActivity(AUTH_USER_ID)).thenReturn(testUser);
 
         // When
         ResponseEntity<UserDTO> response = userController.updateLastActivity();
@@ -136,7 +138,7 @@ class UserControllerTest {
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals("test@example.com", response.getBody().getEmail());
-        verify(userService, times(1)).updateLastActivity("test@example.com");
+        assertEquals(AUTH_USER_ID, response.getBody().getAuthUserId());
+        verify(userService, times(1)).updateLastActivity(AUTH_USER_ID);
     }
 }

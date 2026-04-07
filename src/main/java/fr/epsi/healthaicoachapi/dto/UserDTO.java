@@ -4,10 +4,8 @@ import java.time.LocalDateTime;
 
 public class UserDTO {
     private Long id;
-    private String email;
+    private String authUserId;
     private String username;
-    private String role;
-    private Boolean isPremium;
     private Integer age;
     private String gender;
     private Double weightKg;
@@ -19,14 +17,12 @@ public class UserDTO {
     public UserDTO() {
     }
 
-    public UserDTO(Long id, String email, String username, String role, Boolean isPremium, Integer age, String gender,
-                   Double weightKg, Double heightCm, String objective, LocalDateTime createdAt,
-                   LocalDateTime lastActivity) {
+    public UserDTO(Long id, String authUserId, String username, Integer age, String gender,
+                   Double weightKg, Double heightCm, String objective,
+                   LocalDateTime createdAt, LocalDateTime lastActivity) {
         this.id = id;
-        this.email = email;
+        this.authUserId = authUserId;
         this.username = username;
-        this.role = role;
-        this.isPremium = isPremium;
         this.age = age;
         this.gender = gender;
         this.weightKg = weightKg;
@@ -48,12 +44,12 @@ public class UserDTO {
         this.id = id;
     }
 
-    public String getEmail() {
-        return email;
+    public String getAuthUserId() {
+        return authUserId;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setAuthUserId(String authUserId) {
+        this.authUserId = authUserId;
     }
 
     public String getUsername() {
@@ -62,22 +58,6 @@ public class UserDTO {
 
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    public Boolean getIsPremium() {
-        return isPremium;
-    }
-
-    public void setIsPremium(Boolean premium) {
-        isPremium = premium;
     }
 
     public Integer getAge() {
@@ -138,10 +118,8 @@ public class UserDTO {
 
     public static class Builder {
         private Long id;
-        private String email;
+        private String authUserId;
         private String username;
-        private String role;
-        private Boolean isPremium;
         private Integer age;
         private String gender;
         private Double weightKg;
@@ -155,23 +133,13 @@ public class UserDTO {
             return this;
         }
 
-        public Builder email(String email) {
-            this.email = email;
+        public Builder authUserId(String authUserId) {
+            this.authUserId = authUserId;
             return this;
         }
 
         public Builder username(String username) {
             this.username = username;
-            return this;
-        }
-
-        public Builder role(String role) {
-            this.role = role;
-            return this;
-        }
-
-        public Builder isPremium(Boolean isPremium) {
-            this.isPremium = isPremium;
             return this;
         }
 
@@ -211,7 +179,7 @@ public class UserDTO {
         }
 
         public UserDTO build() {
-            return new UserDTO(id, email, username, role, isPremium, age, gender, weightKg, heightCm, objective,
+            return new UserDTO(id, authUserId, username, age, gender, weightKg, heightCm, objective,
                     createdAt, lastActivity);
         }
     }
