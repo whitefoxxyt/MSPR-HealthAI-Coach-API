@@ -13,10 +13,6 @@ public class BiometricEntry {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-
     @Column(name = "weight_kg")
     private BigDecimal weightKg;
 
@@ -52,12 +48,11 @@ public class BiometricEntry {
     public BiometricEntry() {
     }
 
-    public BiometricEntry(Long id, User user, BigDecimal weightKg, BigDecimal heightCm, BigDecimal bmi,
+    public BiometricEntry(Long id, BigDecimal weightKg, BigDecimal heightCm, BigDecimal bmi,
                           BigDecimal fatPercentage, Integer heartRateRest, Integer heartRateAvg,
                           Integer heartRateMax, String bloodPressure, String source, String status,
                           LocalDateTime createdAt) {
         this.id = id;
-        this.user = user;
         this.weightKg = weightKg;
         this.heightCm = heightCm;
         this.bmi = bmi;
@@ -73,8 +68,6 @@ public class BiometricEntry {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
     public BigDecimal getWeightKg() { return weightKg; }
     public void setWeightKg(BigDecimal weightKg) { this.weightKg = weightKg; }
     public BigDecimal getHeightCm() { return heightCm; }

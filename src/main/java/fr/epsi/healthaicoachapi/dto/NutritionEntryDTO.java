@@ -11,9 +11,6 @@ public class NutritionEntryDTO {
 
     private Long id;
 
-    @NotNull(message = "User ID is required")
-    private Long userId;
-
     @NotBlank(message = "Food name is required")
     private String foodName;
 
@@ -56,8 +53,6 @@ public class NutritionEntryDTO {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public Long getUserId() { return userId; }
-    public void setUserId(Long userId) { this.userId = userId; }
     public String getFoodName() { return foodName; }
     public void setFoodName(String foodName) { this.foodName = foodName; }
     public String getCategory() { return category; }
@@ -93,7 +88,6 @@ public class NutritionEntryDTO {
         private NutritionEntryDTO dto = new NutritionEntryDTO();
 
         public Builder id(Long id) { dto.id = id; return this; }
-        public Builder userId(Long userId) { dto.userId = userId; return this; }
         public Builder foodName(String foodName) { dto.foodName = foodName; return this; }
         public Builder category(String category) { dto.category = category; return this; }
         public Builder mealType(String mealType) { dto.mealType = mealType; return this; }

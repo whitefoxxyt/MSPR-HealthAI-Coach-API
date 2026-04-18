@@ -13,10 +13,6 @@ public class NutritionEntry {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-
     @Column(name = "food_name", nullable = false)
     private String foodName;
 
@@ -63,12 +59,11 @@ public class NutritionEntry {
     public NutritionEntry() {
     }
 
-    public NutritionEntry(Long id, User user, String foodName, String category, String mealType, BigDecimal calories,
+    public NutritionEntry(Long id, String foodName, String category, String mealType, BigDecimal calories,
                           BigDecimal cholesterolMg, BigDecimal proteinG, BigDecimal carbsG, BigDecimal fatG,
                           BigDecimal fiberG, BigDecimal sugarsG, BigDecimal sodiumMg, BigDecimal waterMl,
                           String source, String status, LocalDateTime createdAt) {
         this.id = id;
-        this.user = user;
         this.foodName = foodName;
         this.category = category;
         this.mealType = mealType;
@@ -88,8 +83,6 @@ public class NutritionEntry {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
     public String getFoodName() { return foodName; }
     public void setFoodName(String foodName) { this.foodName = foodName; }
     public String getCategory() { return category; }

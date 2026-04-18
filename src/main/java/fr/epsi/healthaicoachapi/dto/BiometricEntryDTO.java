@@ -11,9 +11,6 @@ public class BiometricEntryDTO {
 
     private Long id;
 
-    @NotNull(message = "User ID is required")
-    private Long userId;
-
     @Positive(message = "Weight must be positive")
     private BigDecimal weightKg;
 
@@ -48,8 +45,6 @@ public class BiometricEntryDTO {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public Long getUserId() { return userId; }
-    public void setUserId(Long userId) { this.userId = userId; }
     public BigDecimal getWeightKg() { return weightKg; }
     public void setWeightKg(BigDecimal weightKg) { this.weightKg = weightKg; }
     public BigDecimal getHeightCm() { return heightCm; }
@@ -77,7 +72,6 @@ public class BiometricEntryDTO {
         private BiometricEntryDTO dto = new BiometricEntryDTO();
 
         public Builder id(Long id) { dto.id = id; return this; }
-        public Builder userId(Long userId) { dto.userId = userId; return this; }
         public Builder weightKg(BigDecimal weightKg) { dto.weightKg = weightKg; return this; }
         public Builder heightCm(BigDecimal heightCm) { dto.heightCm = heightCm; return this; }
         public Builder bmi(BigDecimal bmi) { dto.bmi = bmi; return this; }

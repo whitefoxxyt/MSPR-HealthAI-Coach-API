@@ -6,14 +6,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/workouts")
@@ -21,52 +18,41 @@ import java.util.List;
 @SecurityRequirement(name = "bearer-jwt")
 public class WorkoutController {
 
-    private static final Logger log = LoggerFactory.getLogger(WorkoutController.class);
-
     private final WorkoutService workoutService;
 
     public WorkoutController(WorkoutService workoutService) {
         this.workoutService = workoutService;
     }
 
-    @GetMapping("/user/{userId}")
-    @Operation(summary = "Liste les séances d'exercice d'un utilisateur")
-    public ResponseEntity<List<ExerciseEntryDTO>> getUserWorkouts(@PathVariable Long userId) {
-        String authUserId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        List<ExerciseEntryDTO> entries = workoutService.getUserWorkouts(userId, authUserId);
-        return ResponseEntity.ok(entries);
+    @GetMapping
+    @Operation(summary = "Liste paginée des séances d'exercice")
+    public ResponseEntity<Page<ExerciseEntryDTO>> listWorkouts(Pageable pageable) {
+        return ResponseEntity.ok(workoutService.listWorkouts(pageable));
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Récupère une séance d'exercice par ID")
     public ResponseEntity<ExerciseEntryDTO> getWorkoutById(@PathVariable Long id) {
-        String authUserId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        ExerciseEntryDTO entry = workoutService.getWorkoutById(id, authUserId);
-        return ResponseEntity.ok(entry);
+        return ResponseEntity.ok(workoutService.getWorkoutById(id));
     }
 
     @PostMapping
     @Operation(summary = "Crée une nouvelle séance d'exercice")
     public ResponseEntity<ExerciseEntryDTO> createWorkout(@Valid @RequestBody ExerciseEntryDTO dto) {
-        String authUserId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        ExerciseEntryDTO saved = workoutService.createWorkout(dto, authUserId);
+        ExerciseEntryDTO saved = workoutService.createWorkout(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Met à jour une séance d'exercice")
     public ResponseEntity<ExerciseEntryDTO> updateWorkout(@PathVariable Long id, @Valid @RequestBody ExerciseEntryDTO dto) {
-        String authUserId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        ExerciseEntryDTO updated = workoutService.updateWorkout(id, dto, authUserId);
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(workoutService.updateWorkout(id, dto));
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Supprime une séance d'exercice")
     public ResponseEntity<Void> deleteWorkout(@PathVariable Long id) {
-        String authUserId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        workoutService.deleteWorkout(id, authUserId);
+        workoutService.deleteWorkout(id);
         return ResponseEntity.noContent().build();
     }
 }
-

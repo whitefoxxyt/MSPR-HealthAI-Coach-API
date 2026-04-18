@@ -2,13 +2,12 @@ package fr.epsi.healthaicoachapi.service;
 
 import fr.epsi.healthaicoachapi.dto.ExerciseEntryDTO;
 import fr.epsi.healthaicoachapi.entity.ExerciseEntry;
-import fr.epsi.healthaicoachapi.entity.User;
 import fr.epsi.healthaicoachapi.exception.ResourceNotFoundException;
-import fr.epsi.healthaicoachapi.exception.UnauthorizedAccessException;
 import fr.epsi.healthaicoachapi.repository.ExerciseEntryRepository;
-import fr.epsi.healthaicoachapi.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,52 +20,31 @@ public class WorkoutService {
     private static final Logger log = LoggerFactory.getLogger(WorkoutService.class);
 
     private final ExerciseEntryRepository exerciseEntryRepository;
-    private final UserRepository userRepository;
 
-    public WorkoutService(ExerciseEntryRepository exerciseEntryRepository, UserRepository userRepository) {
+    public WorkoutService(ExerciseEntryRepository exerciseEntryRepository) {
         this.exerciseEntryRepository = exerciseEntryRepository;
-        this.userRepository = userRepository;
     }
 
     @Transactional(readOnly = true)
-    public List<ExerciseEntryDTO> getUserWorkouts(Long userId, String authUserId) {
-        User authenticatedUser = getUserByAuthUserId(authUserId);
-        
-        if (!authenticatedUser.getId().equals(userId)) {
-            throw new UnauthorizedAccessException("You can only access your own workout data");
-        }
-
-        List<ExerciseEntry> entries = exerciseEntryRepository.findByUserId(userId);
-        return entries.stream().map(this::mapToDTO).collect(Collectors.toList());
+    public Page<ExerciseEntryDTO> listWorkouts(Pageable pageable) {
+        return exerciseEntryRepository.findAll(pageable).map(this::mapToDTO);
     }
 
     @Transactional(readOnly = true)
-    public ExerciseEntryDTO getWorkoutById(Long id, String authUserId) {
+    public List<ExerciseEntryDTO> listAllWorkouts() {
+        return exerciseEntryRepository.findAll().stream().map(this::mapToDTO).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public ExerciseEntryDTO getWorkoutById(Long id) {
         ExerciseEntry entry = exerciseEntryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Workout entry", id));
-
-        User authenticatedUser = getUserByAuthUserId(authUserId);
-        
-        if (!entry.getUser().getId().equals(authenticatedUser.getId())) {
-            throw new UnauthorizedAccessException();
-        }
-
         return mapToDTO(entry);
     }
 
     @Transactional
-    public ExerciseEntryDTO createWorkout(ExerciseEntryDTO dto, String authUserId) {
-        User authenticatedUser = getUserByAuthUserId(authUserId);
-        
-        if (!authenticatedUser.getId().equals(dto.getUserId())) {
-            throw new UnauthorizedAccessException("You can only create workout entries for yourself");
-        }
-
-        User user = userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("User", dto.getUserId()));
-
+    public ExerciseEntryDTO createWorkout(ExerciseEntryDTO dto) {
         ExerciseEntry entry = new ExerciseEntry();
-        entry.setUser(user);
         entry.setWorkoutType(dto.getWorkoutType());
         entry.setDurationMin(dto.getDurationMin());
         entry.setCaloriesBurned(dto.getCaloriesBurned());
@@ -77,21 +55,14 @@ public class WorkoutService {
         entry.setStatus(dto.getStatus() != null ? dto.getStatus() : "BRUT");
 
         ExerciseEntry saved = exerciseEntryRepository.save(entry);
-        log.info("Workout entry created for user: {}", user.getId());
-
+        log.info("Workout entry {} created", saved.getId());
         return mapToDTO(saved);
     }
 
     @Transactional
-    public ExerciseEntryDTO updateWorkout(Long id, ExerciseEntryDTO dto, String authUserId) {
+    public ExerciseEntryDTO updateWorkout(Long id, ExerciseEntryDTO dto) {
         ExerciseEntry entry = exerciseEntryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Workout entry", id));
-
-        User authenticatedUser = getUserByAuthUserId(authUserId);
-        
-        if (!entry.getUser().getId().equals(authenticatedUser.getId())) {
-            throw new UnauthorizedAccessException();
-        }
 
         if (dto.getWorkoutType() != null) entry.setWorkoutType(dto.getWorkoutType());
         if (dto.getDurationMin() != null) entry.setDurationMin(dto.getDurationMin());
@@ -103,21 +74,14 @@ public class WorkoutService {
 
         ExerciseEntry updated = exerciseEntryRepository.save(entry);
         log.info("Workout entry {} updated", id);
-
         return mapToDTO(updated);
     }
 
     @Transactional
-    public void deleteWorkout(Long id, String authUserId) {
-        ExerciseEntry entry = exerciseEntryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Workout entry", id));
-
-        User authenticatedUser = getUserByAuthUserId(authUserId);
-        
-        if (!entry.getUser().getId().equals(authenticatedUser.getId())) {
-            throw new UnauthorizedAccessException();
+    public void deleteWorkout(Long id) {
+        if (!exerciseEntryRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Workout entry", id);
         }
-
         exerciseEntryRepository.deleteById(id);
         log.info("Workout entry {} deleted", id);
     }
@@ -125,7 +89,6 @@ public class WorkoutService {
     private ExerciseEntryDTO mapToDTO(ExerciseEntry entry) {
         return ExerciseEntryDTO.builder()
                 .id(entry.getId())
-                .userId(entry.getUser().getId())
                 .workoutType(entry.getWorkoutType())
                 .durationMin(entry.getDurationMin())
                 .caloriesBurned(entry.getCaloriesBurned())
@@ -136,10 +99,5 @@ public class WorkoutService {
                 .status(entry.getStatus())
                 .createdAt(entry.getCreatedAt())
                 .build();
-    }
-
-    private User getUserByAuthUserId(String authUserId) {
-        return userRepository.findByAuthUserId(authUserId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 }

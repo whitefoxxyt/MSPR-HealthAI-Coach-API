@@ -11,7 +11,6 @@ import java.util.List;
 
 @Repository
 public interface ExerciseEntryRepository extends JpaRepository<ExerciseEntry, Long> {
-    List<ExerciseEntry> findByUserId(Long userId);
 
     long countByStatus(String status);
 

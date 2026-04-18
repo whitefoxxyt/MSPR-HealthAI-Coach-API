@@ -1,20 +1,16 @@
 package fr.epsi.healthaicoachapi.controller;
 
 import fr.epsi.healthaicoachapi.dto.BiometricEntryDTO;
-import fr.epsi.healthaicoachapi.entity.BiometricEntry;
 import fr.epsi.healthaicoachapi.service.BiometricService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/biometrics")
@@ -22,52 +18,41 @@ import java.util.List;
 @SecurityRequirement(name = "bearer-jwt")
 public class BiometricController {
 
-    private static final Logger log = LoggerFactory.getLogger(BiometricController.class);
-
     private final BiometricService biometricService;
 
     public BiometricController(BiometricService biometricService) {
         this.biometricService = biometricService;
     }
 
-    @GetMapping("/user/{userId}")
-    @Operation(summary = "Liste les données biométriques d'un utilisateur")
-    public ResponseEntity<List<BiometricEntryDTO>> getUserBiometrics(@PathVariable Long userId) {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        List<BiometricEntryDTO> entries = biometricService.getUserBiometrics(userId, email);
-        return ResponseEntity.ok(entries);
+    @GetMapping
+    @Operation(summary = "Liste paginée des entrées biométriques")
+    public ResponseEntity<Page<BiometricEntryDTO>> listBiometrics(Pageable pageable) {
+        return ResponseEntity.ok(biometricService.listBiometrics(pageable));
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Récupère une entrée biométrique par ID")
     public ResponseEntity<BiometricEntryDTO> getBiometricById(@PathVariable Long id) {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        BiometricEntryDTO entry = biometricService.getBiometricById(id, email);
-        return ResponseEntity.ok(entry);
+        return ResponseEntity.ok(biometricService.getBiometricById(id));
     }
 
     @PostMapping
     @Operation(summary = "Crée une nouvelle entrée biométrique")
     public ResponseEntity<BiometricEntryDTO> createBiometric(@Valid @RequestBody BiometricEntryDTO dto) {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        BiometricEntryDTO saved = biometricService.createBiometric(dto, email);
+        BiometricEntryDTO saved = biometricService.createBiometric(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Met à jour une entrée biométrique")
     public ResponseEntity<BiometricEntryDTO> updateBiometric(@PathVariable Long id, @RequestBody BiometricEntryDTO dto) {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        BiometricEntryDTO updated = biometricService.updateBiometric(id, dto, email);
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(biometricService.updateBiometric(id, dto));
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Supprime une entrée biométrique")
     public ResponseEntity<Void> deleteBiometric(@PathVariable Long id) {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        biometricService.deleteBiometric(id, email);
+        biometricService.deleteBiometric(id);
         return ResponseEntity.noContent().build();
     }
 }
-

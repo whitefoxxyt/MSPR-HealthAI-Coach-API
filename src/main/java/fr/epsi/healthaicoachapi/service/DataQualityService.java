@@ -2,7 +2,6 @@ package fr.epsi.healthaicoachapi.service;
 
 import fr.epsi.healthaicoachapi.dto.*;
 import fr.epsi.healthaicoachapi.entity.BiometricEntry;
-import fr.epsi.healthaicoachapi.entity.ExerciseEntry;
 import fr.epsi.healthaicoachapi.entity.NutritionEntry;
 import fr.epsi.healthaicoachapi.exception.ResourceNotFoundException;
 import fr.epsi.healthaicoachapi.repository.*;
@@ -26,18 +25,15 @@ public class DataQualityService {
     private static final BigDecimal BMI_MIN = new BigDecimal("10");
     private static final int HEART_RATE_MAX_THRESHOLD = 200;
 
-    private final UserRepository userRepository;
     private final BiometricEntryRepository biometricRepo;
     private final NutritionEntryRepository nutritionRepo;
     private final ExerciseEntryRepository exerciseRepo;
     private final DietRecommendationRepository dietRepo;
 
-    public DataQualityService(UserRepository userRepository,
-                               BiometricEntryRepository biometricRepo,
+    public DataQualityService(BiometricEntryRepository biometricRepo,
                                NutritionEntryRepository nutritionRepo,
                                ExerciseEntryRepository exerciseRepo,
                                DietRecommendationRepository dietRepo) {
-        this.userRepository = userRepository;
         this.biometricRepo = biometricRepo;
         this.nutritionRepo = nutritionRepo;
         this.exerciseRepo = exerciseRepo;
@@ -48,9 +44,8 @@ public class DataQualityService {
         long biometricTotal = biometricRepo.count();
         long nutritionTotal = nutritionRepo.count();
         long exerciseTotal = exerciseRepo.count();
-        long userTotal = userRepository.count();
         long dietTotal = dietRepo.count();
-        long totalRecords = biometricTotal + nutritionTotal + exerciseTotal + userTotal + dietTotal;
+        long totalRecords = biometricTotal + nutritionTotal + exerciseTotal + dietTotal;
 
         List<DataAnomalyDTO> anomalies = detectAnomalies();
         long anomalyCount = anomalies.size();
@@ -121,7 +116,6 @@ public class DataQualityService {
 
     @Transactional
     public DataAnomalyDTO resolveAnomaly(String anomalyId, Map<String, Object> updates) {
-        // Parse anomaly id format: "biometric_hr_{entryId}", "biometric_bmi_{entryId}", "nutrition_cal_{entryId}"
         String[] parts = anomalyId.split("_");
         if (parts.length < 3) {
             throw new ResourceNotFoundException("Anomaly not found: " + anomalyId);
@@ -173,6 +167,7 @@ public class DataQualityService {
         LocalDateTime latestBiometric = biometricRepo.findLatestCreatedAt();
         LocalDateTime latestNutrition = nutritionRepo.findLatestCreatedAt();
         LocalDateTime latestExercise = exerciseRepo.findLatestCreatedAt();
+        LocalDateTime latestDiet = dietRepo.findLatestCreatedAt();
 
         List<DataAnomalyDTO> anomalies = detectAnomalies();
         long totalEntries = biometricRepo.count() + nutritionRepo.count() + exerciseRepo.count() + dietRepo.count();
@@ -181,16 +176,6 @@ public class DataQualityService {
                 : 0.0;
 
         List<DataFlowStatsDTO> flows = new ArrayList<>();
-
-        DataFlowStatsDTO userFlow = new DataFlowStatsDTO();
-        userFlow.setName("Profils utilisateurs");
-        userFlow.setType("user");
-        long userToday = userRepository.countByLastActivityAfter(today);
-        userFlow.setRecordsToday(userToday);
-        userFlow.setLastSync(LocalDateTime.now().format(ISO) + "Z");
-        userFlow.setStatus(userToday > 0 ? "active" : "inactive");
-        userFlow.setErrorRate(0.0);
-        flows.add(userFlow);
 
         DataFlowStatsDTO nutritionFlow = new DataFlowStatsDTO();
         nutritionFlow.setName("Données nutritionnelles");
@@ -219,7 +204,6 @@ public class DataQualityService {
         biometricFlow.setErrorRate(globalErrorRate);
         flows.add(biometricFlow);
 
-        LocalDateTime latestDiet = dietRepo.findLatestCreatedAt();
         DataFlowStatsDTO dietFlow = new DataFlowStatsDTO();
         dietFlow.setName("Recommandations alimentaires");
         dietFlow.setType("diet");
@@ -234,39 +218,11 @@ public class DataQualityService {
 
     public AnalyticsOverviewDTO getAnalyticsOverview() {
         AnalyticsOverviewDTO overview = new AnalyticsOverviewDTO();
-        long totalUsers = userRepository.count();
-
-        // Age distribution
-        Object[] ageDist = userRepository.ageDistribution();
-        List<AnalyticsOverviewDTO.DistributionItem> ageDistList = new ArrayList<>();
-        if (ageDist != null && ageDist.length == 4) {
-            ageDistList.add(new AnalyticsOverviewDTO.DistributionItem("18-25 ans", toLong(ageDist[0])));
-            ageDistList.add(new AnalyticsOverviewDTO.DistributionItem("26-35 ans", toLong(ageDist[1])));
-            ageDistList.add(new AnalyticsOverviewDTO.DistributionItem("36-50 ans", toLong(ageDist[2])));
-            ageDistList.add(new AnalyticsOverviewDTO.DistributionItem("50+ ans", toLong(ageDist[3])));
-        }
-        overview.setAgeDistribution(ageDistList);
-
-        // Objective distribution
-        List<Object[]> objDist = userRepository.countByObjective();
-        List<AnalyticsOverviewDTO.DistributionItem> objDistList = objDist.stream()
-                .map(row -> new AnalyticsOverviewDTO.DistributionItem(
-                        String.valueOf(row[0]), toLong(row[1])))
-                .collect(Collectors.toList());
-        overview.setObjectiveDistribution(objDistList);
-
-        // Progression rates (% of users with activity in each period)
         LocalDateTime now = LocalDateTime.now();
-        long active7d = userRepository.countByLastActivityAfter(now.minusDays(7));
-        long active30d = userRepository.countByLastActivityAfter(now.minusDays(30));
-        long active90d = userRepository.countByLastActivityAfter(now.minusDays(90));
-        Map<String, Double> progressionRate = new LinkedHashMap<>();
-        progressionRate.put("7d", totalUsers > 0 ? round1((double) active7d / totalUsers * 100) : 0.0);
-        progressionRate.put("30d", totalUsers > 0 ? round1((double) active30d / totalUsers * 100) : 0.0);
-        progressionRate.put("90d", totalUsers > 0 ? round1((double) active90d / totalUsers * 100) : 0.0);
-        overview.setProgressionRateByPeriod(progressionRate);
 
-        // Daily trends from real data
+        overview.setAgeDistribution(Collections.emptyList());
+        overview.setObjectiveDistribution(Collections.emptyList());
+        overview.setProgressionRateByPeriod(Collections.emptyMap());
         overview.setUserProgressionTrend(buildTrendFromRows(
                 exerciseRepo.countByDaySince(now.minusDays(7)),
                 exerciseRepo.countByDaySince(now.minusDays(30)),
@@ -276,7 +232,6 @@ public class DataQualityService {
                 nutritionRepo.countByDaySince(now.minusDays(30)),
                 nutritionRepo.countByDaySince(now.minusDays(90))));
 
-        // Nutrition balance: deviation from 500 cal target per meal type
         List<Object[]> mealAvgs = nutritionRepo.avgCaloriesByMealType();
         List<AnalyticsOverviewDTO.NutritionBalance> nutritionBalance = mealAvgs.stream()
                 .map(row -> {
@@ -290,7 +245,6 @@ public class DataQualityService {
                 .collect(Collectors.toList());
         overview.setNutritionBalanceByProfile(nutritionBalance);
 
-        // Top exercises
         List<Object[]> topEx = exerciseRepo.countByWorkoutType();
         List<AnalyticsOverviewDTO.DistributionItem> topExList = topEx.stream()
                 .limit(5)
@@ -299,7 +253,6 @@ public class DataQualityService {
                 .collect(Collectors.toList());
         overview.setTopExercises(topExList);
 
-        // Intensity levels
         long low = exerciseRepo.countLowIntensity();
         long moderate = exerciseRepo.countModerateIntensity();
         long high = exerciseRepo.countHighIntensity();
@@ -313,14 +266,7 @@ public class DataQualityService {
                 totalWithHR > 0 ? round1((double) high / totalWithHR * 100) : 0));
         overview.setIntensityLevels(intensityList);
 
-        // Business KPIs
-        long premiumUsers = userRepository.countByIsPremiumTrue();
-        double premiumRate = totalUsers > 0 ? round1((double) premiumUsers / totalUsers * 100) : 0.0;
-        double engagementRate = progressionRate.getOrDefault("30d", 0.0);
-        double satisfactionRate = round1(100.0 - (getMetrics().getAnomalies() > 0
-                ? Math.min(10.0, getMetrics().getAnomalies() * 0.1)
-                : 0.0));
-        overview.setBusinessKpis(new AnalyticsOverviewDTO.BusinessKpis(engagementRate, premiumRate, satisfactionRate));
+        overview.setBusinessKpis(new AnalyticsOverviewDTO.BusinessKpis(0.0, 0.0, 0.0));
 
         return overview;
     }

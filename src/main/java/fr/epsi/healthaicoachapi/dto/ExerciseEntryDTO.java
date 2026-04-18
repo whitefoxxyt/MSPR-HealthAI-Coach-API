@@ -11,9 +11,6 @@ public class ExerciseEntryDTO {
 
     private Long id;
 
-    @NotNull(message = "User ID is required")
-    private Long userId;
-
     private String workoutType;
 
     @Positive(message = "Duration must be positive")
@@ -44,8 +41,6 @@ public class ExerciseEntryDTO {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public Long getUserId() { return userId; }
-    public void setUserId(Long userId) { this.userId = userId; }
     public String getWorkoutType() { return workoutType; }
     public void setWorkoutType(String workoutType) { this.workoutType = workoutType; }
     public BigDecimal getDurationMin() { return durationMin; }
@@ -69,7 +64,6 @@ public class ExerciseEntryDTO {
         private ExerciseEntryDTO dto = new ExerciseEntryDTO();
 
         public Builder id(Long id) { dto.id = id; return this; }
-        public Builder userId(Long userId) { dto.userId = userId; return this; }
         public Builder workoutType(String workoutType) { dto.workoutType = workoutType; return this; }
         public Builder durationMin(BigDecimal durationMin) { dto.durationMin = durationMin; return this; }
         public Builder caloriesBurned(BigDecimal caloriesBurned) { dto.caloriesBurned = caloriesBurned; return this; }

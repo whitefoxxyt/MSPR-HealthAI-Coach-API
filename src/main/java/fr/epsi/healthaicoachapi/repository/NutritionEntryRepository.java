@@ -12,7 +12,6 @@ import java.util.List;
 
 @Repository
 public interface NutritionEntryRepository extends JpaRepository<NutritionEntry, Long> {
-    List<NutritionEntry> findByUserId(Long userId);
 
     long countByStatus(String status);
 

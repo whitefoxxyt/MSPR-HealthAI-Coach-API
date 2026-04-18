@@ -13,10 +13,6 @@ public class ExerciseEntry {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-
     @Column(name = "workout_type")
     private String workoutType;
 
@@ -46,11 +42,10 @@ public class ExerciseEntry {
     public ExerciseEntry() {
     }
 
-    public ExerciseEntry(Long id, User user, String workoutType, BigDecimal durationMin, BigDecimal caloriesBurned,
+    public ExerciseEntry(Long id, String workoutType, BigDecimal durationMin, BigDecimal caloriesBurned,
                          Integer steps, Integer heartRateAvg, Integer heartRateMax, String source, String status,
                          LocalDateTime createdAt) {
         this.id = id;
-        this.user = user;
         this.workoutType = workoutType;
         this.durationMin = durationMin;
         this.caloriesBurned = caloriesBurned;
@@ -64,8 +59,6 @@ public class ExerciseEntry {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
     public String getWorkoutType() { return workoutType; }
     public void setWorkoutType(String workoutType) { this.workoutType = workoutType; }
     public BigDecimal getDurationMin() { return durationMin; }

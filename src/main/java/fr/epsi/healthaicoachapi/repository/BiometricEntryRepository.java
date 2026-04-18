@@ -11,7 +11,6 @@ import java.util.List;
 
 @Repository
 public interface BiometricEntryRepository extends JpaRepository<BiometricEntry, Long> {
-    List<BiometricEntry> findByUserId(Long userId);
 
     long countByStatus(String status);
 

@@ -2,13 +2,12 @@ package fr.epsi.healthaicoachapi.service;
 
 import fr.epsi.healthaicoachapi.dto.NutritionEntryDTO;
 import fr.epsi.healthaicoachapi.entity.NutritionEntry;
-import fr.epsi.healthaicoachapi.entity.User;
 import fr.epsi.healthaicoachapi.exception.ResourceNotFoundException;
-import fr.epsi.healthaicoachapi.exception.UnauthorizedAccessException;
 import fr.epsi.healthaicoachapi.repository.NutritionEntryRepository;
-import fr.epsi.healthaicoachapi.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,52 +20,31 @@ public class NutritionService {
     private static final Logger log = LoggerFactory.getLogger(NutritionService.class);
 
     private final NutritionEntryRepository nutritionEntryRepository;
-    private final UserRepository userRepository;
 
-    public NutritionService(NutritionEntryRepository nutritionEntryRepository, UserRepository userRepository) {
+    public NutritionService(NutritionEntryRepository nutritionEntryRepository) {
         this.nutritionEntryRepository = nutritionEntryRepository;
-        this.userRepository = userRepository;
     }
 
     @Transactional(readOnly = true)
-    public List<NutritionEntryDTO> getUserNutritionEntries(Long userId, String authUserId) {
-        User authenticatedUser = getUserByAuthUserId(authUserId);
-        
-        if (!authenticatedUser.getId().equals(userId)) {
-            throw new UnauthorizedAccessException("You can only access your own nutrition data");
-        }
-
-        List<NutritionEntry> entries = nutritionEntryRepository.findByUserId(userId);
-        return entries.stream().map(this::mapToDTO).collect(Collectors.toList());
+    public Page<NutritionEntryDTO> listNutritionEntries(Pageable pageable) {
+        return nutritionEntryRepository.findAll(pageable).map(this::mapToDTO);
     }
 
     @Transactional(readOnly = true)
-    public NutritionEntryDTO getNutritionEntryById(Long id, String authUserId) {
+    public List<NutritionEntryDTO> listAllNutritionEntries() {
+        return nutritionEntryRepository.findAll().stream().map(this::mapToDTO).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public NutritionEntryDTO getNutritionEntryById(Long id) {
         NutritionEntry entry = nutritionEntryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Nutrition entry", id));
-
-        User authenticatedUser = getUserByAuthUserId(authUserId);
-        
-        if (!entry.getUser().getId().equals(authenticatedUser.getId())) {
-            throw new UnauthorizedAccessException();
-        }
-
         return mapToDTO(entry);
     }
 
     @Transactional
-    public NutritionEntryDTO createNutritionEntry(NutritionEntryDTO dto, String authUserId) {
-        User authenticatedUser = getUserByAuthUserId(authUserId);
-        
-        if (!authenticatedUser.getId().equals(dto.getUserId())) {
-            throw new UnauthorizedAccessException("You can only create nutrition entries for yourself");
-        }
-
-        User user = userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("User", dto.getUserId()));
-
+    public NutritionEntryDTO createNutritionEntry(NutritionEntryDTO dto) {
         NutritionEntry entry = new NutritionEntry();
-        entry.setUser(user);
         entry.setFoodName(dto.getFoodName());
         entry.setCategory(dto.getCategory());
         entry.setMealType(dto.getMealType());
@@ -83,21 +61,14 @@ public class NutritionService {
         entry.setStatus(dto.getStatus() != null ? dto.getStatus() : "BRUT");
 
         NutritionEntry saved = nutritionEntryRepository.save(entry);
-        log.info("Nutrition entry created for user: {}", user.getId());
-
+        log.info("Nutrition entry {} created", saved.getId());
         return mapToDTO(saved);
     }
 
     @Transactional
-    public NutritionEntryDTO updateNutritionEntry(Long id, NutritionEntryDTO dto, String authUserId) {
+    public NutritionEntryDTO updateNutritionEntry(Long id, NutritionEntryDTO dto) {
         NutritionEntry entry = nutritionEntryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Nutrition entry", id));
-
-        User authenticatedUser = getUserByAuthUserId(authUserId);
-        
-        if (!entry.getUser().getId().equals(authenticatedUser.getId())) {
-            throw new UnauthorizedAccessException();
-        }
 
         if (dto.getFoodName() != null) entry.setFoodName(dto.getFoodName());
         if (dto.getCategory() != null) entry.setCategory(dto.getCategory());
@@ -115,21 +86,14 @@ public class NutritionService {
 
         NutritionEntry updated = nutritionEntryRepository.save(entry);
         log.info("Nutrition entry {} updated", id);
-
         return mapToDTO(updated);
     }
 
     @Transactional
-    public void deleteNutritionEntry(Long id, String authUserId) {
-        NutritionEntry entry = nutritionEntryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Nutrition entry", id));
-
-        User authenticatedUser = getUserByAuthUserId(authUserId);
-        
-        if (!entry.getUser().getId().equals(authenticatedUser.getId())) {
-            throw new UnauthorizedAccessException();
+    public void deleteNutritionEntry(Long id) {
+        if (!nutritionEntryRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Nutrition entry", id);
         }
-
         nutritionEntryRepository.deleteById(id);
         log.info("Nutrition entry {} deleted", id);
     }
@@ -137,7 +101,6 @@ public class NutritionService {
     private NutritionEntryDTO mapToDTO(NutritionEntry entry) {
         return NutritionEntryDTO.builder()
                 .id(entry.getId())
-                .userId(entry.getUser().getId())
                 .foodName(entry.getFoodName())
                 .category(entry.getCategory())
                 .mealType(entry.getMealType())
@@ -154,10 +117,5 @@ public class NutritionService {
                 .status(entry.getStatus())
                 .createdAt(entry.getCreatedAt())
                 .build();
-    }
-
-    private User getUserByAuthUserId(String authUserId) {
-        return userRepository.findByAuthUserId(authUserId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 }
