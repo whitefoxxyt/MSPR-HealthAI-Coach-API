@@ -34,4 +34,31 @@ public interface ExerciseEntryRepository extends JpaRepository<ExerciseEntry, Lo
 
     @Query(value = "SELECT DATE(created_at) AS day, COUNT(*) AS cnt FROM exercise_entries WHERE created_at >= :since GROUP BY DATE(created_at) ORDER BY day", nativeQuery = true)
     List<Object[]> countByDaySince(@Param("since") LocalDateTime since);
+
+    @Query("SELECT DISTINCT e.source FROM ExerciseEntry e WHERE e.source IS NOT NULL ORDER BY e.source")
+    List<String> findDistinctSources();
+
+    @Query("""
+        SELECT e FROM ExerciseEntry e
+        WHERE e.status IN :statuses
+          AND e.source = COALESCE(:source, e.source)
+          AND e.createdAt >= COALESCE(:dateFrom, e.createdAt)
+          AND e.createdAt <= COALESCE(:dateTo, e.createdAt)
+    """)
+    List<ExerciseEntry> findFiltered(@Param("statuses") List<String> statuses,
+                                      @Param("source") String source,
+                                      @Param("dateFrom") LocalDateTime dateFrom,
+                                      @Param("dateTo") LocalDateTime dateTo);
+
+    @Query("""
+        SELECT e.id FROM ExerciseEntry e
+        WHERE e.status IN :statuses
+          AND e.source = COALESCE(:source, e.source)
+          AND e.createdAt >= COALESCE(:dateFrom, e.createdAt)
+          AND e.createdAt <= COALESCE(:dateTo, e.createdAt)
+    """)
+    List<Long> findFilteredIds(@Param("statuses") List<String> statuses,
+                                @Param("source") String source,
+                                @Param("dateFrom") LocalDateTime dateFrom,
+                                @Param("dateTo") LocalDateTime dateTo);
 }

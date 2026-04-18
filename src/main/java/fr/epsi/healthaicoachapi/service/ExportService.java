@@ -20,7 +20,7 @@ public class ExportService {
     }
 
     public byte[] export(String format, List<String> entityTypes) throws IOException {
-        PaginatedResponseDTO<DataRecordDTO> all = validationService.getRecords(1, Integer.MAX_VALUE, null);
+        PaginatedResponseDTO<DataRecordDTO> all = validationService.getRecords(1, Integer.MAX_VALUE, null, null, null, (String) null, (String) null);
         List<DataRecordDTO> records = all.getData();
 
         if (entityTypes != null && !entityTypes.isEmpty()) {
