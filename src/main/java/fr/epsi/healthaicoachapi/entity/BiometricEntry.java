@@ -17,13 +17,27 @@ public class BiometricEntry {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @Column(name = "weight_kg")
     private BigDecimal weightKg;
+
+    @Column(name = "height_cm")
     private BigDecimal heightCm;
+
     private BigDecimal bmi;
+
+    @Column(name = "fat_percentage")
     private BigDecimal fatPercentage;
+
+    @Column(name = "heart_rate_rest")
     private Integer heartRateRest;
+
+    @Column(name = "heart_rate_avg")
     private Integer heartRateAvg;
+
+    @Column(name = "heart_rate_max")
     private Integer heartRateMax;
+
+    @Column(name = "blood_pressure")
     private String bloodPressure;
 
     @Column(nullable = false)
@@ -32,7 +46,7 @@ public class BiometricEntry {
     @Column(nullable = false)
     private String status = "BRUT";
 
-    @Column(nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public BiometricEntry() {

@@ -17,20 +17,38 @@ public class NutritionEntry {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(nullable = false)
+    @Column(name = "food_name", nullable = false)
     private String foodName;
 
     private String category;
+
+    @Column(name = "meal_type")
     private String mealType;
 
     private BigDecimal calories;
+
+    @Column(name = "cholesterol_mg")
     private BigDecimal cholesterolMg;
+
+    @Column(name = "protein_g")
     private BigDecimal proteinG;
+
+    @Column(name = "carbs_g")
     private BigDecimal carbsG;
+
+    @Column(name = "fat_g")
     private BigDecimal fatG;
+
+    @Column(name = "fiber_g")
     private BigDecimal fiberG;
+
+    @Column(name = "sugars_g")
     private BigDecimal sugarsG;
+
+    @Column(name = "sodium_mg")
     private BigDecimal sodiumMg;
+
+    @Column(name = "water_ml")
     private BigDecimal waterMl;
 
     @Column(nullable = false)
@@ -39,7 +57,7 @@ public class NutritionEntry {
     @Column(nullable = false)
     private String status = "BRUT";
 
-    @Column(nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public NutritionEntry() {

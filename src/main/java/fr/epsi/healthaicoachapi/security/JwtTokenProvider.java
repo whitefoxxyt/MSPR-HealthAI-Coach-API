@@ -8,26 +8,32 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
-import io.jsonwebtoken.security.Keys;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
 
 /**
- * Valide les JWT émis par le microservice d'authentification (better-auth).
- * Algorithme : HS256. Payload attendu : { sub, email, name, exp }
+ * Valide les JWT émis par le service Auth (Better-Auth).
+ * Les tokens sont signés avec BETTER_AUTH_SECRET en HS512.
+ * Payload attendu : { sub: userId, email: userEmail, name: userName, exp: ... }
  */
 @Service
 public class JwtTokenProvider {
 
     private static final Logger log = LoggerFactory.getLogger(JwtTokenProvider.class);
 
-    @Value("${auth.jwt.secret}")
+    @Value("${app.jwt.secret}")
     private String jwtSecret;
 
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(jwtSecret.getBytes());
+        return new SecretKeySpec(jwtSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA512");
     }
 
-    public String getSubFromToken(String token) {
-        return getAllClaimsFromToken(token).getSubject();
+    public String getEmailFromToken(String token) {
+        return (String) getAllClaimsFromToken(token).get("email");
+    }
+
+    public String getNameFromToken(String token) {
+        return (String) getAllClaimsFromToken(token).get("name");
     }
 
     public boolean isTokenValid(String token) {

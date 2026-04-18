@@ -30,16 +30,40 @@ public class UserService {
     }
 
     @Transactional
-    public UserDTO getUserByAuthUserId(String authUserId) {
-        User user = userRepository.findByAuthUserId(authUserId)
-                .orElseThrow(() -> new ResourceNotFoundException("User with authUserId " + authUserId + " not found"));
-        return mapToDTO(user);
+    public UserDTO getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .map(this::mapToDTO)
+                .orElseGet(() -> provisionUser(email, null));
+    }
+
+    /**
+     * Crée un profil minimal pour un utilisateur authentifié via Better-Auth
+     * dont le compte n'existe pas encore dans la base healthai.
+     * Le profil peut être complété ensuite via updateUserProfile().
+     */
+    @Transactional
+    public UserDTO getOrProvisionUser(String email, String name) {
+        return userRepository.findByEmail(email)
+                .map(this::mapToDTO)
+                .orElseGet(() -> provisionUser(email, name));
+    }
+
+    private UserDTO provisionUser(String email, String name) {
+        String username = (name != null && !name.isBlank()) ? name : email.split("@")[0];
+        User newUser = User.builder()
+                .email(email)
+                .username(username)
+                .passwordHash("BETTER_AUTH_MANAGED")
+                .role("USER")
+                .build();
+        log.info("Auto-provisioning profile for Better-Auth user: {}", email);
+        return mapToDTO(userRepository.save(newUser));
     }
 
     @Transactional
-    public UserDTO updateLastActivity(String authUserId) {
-        User user = userRepository.findByAuthUserId(authUserId)
-                .orElseThrow(() -> new ResourceNotFoundException("User with authUserId " + authUserId + " not found"));
+    public UserDTO updateLastActivity(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User with email " + email + " not found"));
         user.setLastActivity(LocalDateTime.now());
         User updated = userRepository.save(user);
         return mapToDTO(updated);
@@ -74,8 +98,10 @@ public class UserService {
     private UserDTO mapToDTO(User user) {
         return UserDTO.builder()
                 .id(user.getId())
-                .authUserId(user.getAuthUserId())
-                .username(user.getUsername())
+                .email(user.getEmail())
+                .username(user.getAccountUsername())
+                .role(user.getRole())
+                .isPremium(user.getIsPremium())
                 .age(user.getAge())
                 .gender(user.getGender())
                 .weightKg(user.getWeightKg())
@@ -86,3 +112,4 @@ public class UserService {
                 .build();
     }
 }
+

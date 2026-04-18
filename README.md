@@ -9,6 +9,17 @@ L'API REST HealthAI Coach est construite avec **Spring Boot 4.0.3**, **Java 21**
 - 🍽️ Suivi nutritionnel
 - 📊 Données biométriques
 
+## 📈 Qualité du code
+
+Le projet utilise **SonarQube** et **JaCoCo** pour garantir la qualité du code :
+
+- ✅ **Code Coverage** : ≥ 80%
+- ✅ **Bugs critiques** : 0
+- ✅ **Code Duplication** : ≤ 3%
+- ✅ **Security Hotspots** : 100% reviewed
+
+📖 **Guide complet** : [SONAR_JACOCO.md](SONAR_JACOCO.md)
+
 ## Architecture
 
 ```
@@ -366,6 +377,36 @@ Ajouter les domaines autorisés dans SecurityConfig
 - [ ] WebSockets pour real-time data
 - [ ] Mobile push notifications
 - [ ] Recommandations IA
+
+## Tests et Qualité
+
+### Exécuter les tests
+
+```bash
+# Tests unitaires
+mvn test
+
+# Tests avec couverture JaCoCo
+mvn clean verify
+
+# Consulter le rapport de couverture
+open target/site/jacoco/index.html
+```
+
+### Analyse SonarQube
+
+```bash
+# Démarrer SonarQube
+docker compose -f docker-compose.sonar.yml up -d
+
+# Configurer les Quality Gates
+./scripts/setup-sonar-quality-gates.sh
+
+# Lancer l'analyse
+mvn clean verify sonar:sonar
+```
+
+Voir [SONAR_JACOCO.md](SONAR_JACOCO.md) pour plus de détails.
 
 ## Support
 
