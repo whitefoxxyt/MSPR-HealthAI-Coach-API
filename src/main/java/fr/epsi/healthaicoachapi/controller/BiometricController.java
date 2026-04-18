@@ -45,7 +45,7 @@ public class BiometricController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Met à jour une entrée biométrique")
-    public ResponseEntity<BiometricEntryDTO> updateBiometric(@PathVariable Long id, @RequestBody BiometricEntryDTO dto) {
+    public ResponseEntity<BiometricEntryDTO> updateBiometric(@PathVariable Long id, @Valid @RequestBody BiometricEntryDTO dto) {
         return ResponseEntity.ok(biometricService.updateBiometric(id, dto));
     }
 

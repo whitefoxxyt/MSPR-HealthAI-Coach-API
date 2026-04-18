@@ -121,7 +121,12 @@ public class DataQualityService {
             throw new ResourceNotFoundException("Anomaly not found: " + anomalyId);
         }
         String entityType = parts[0];
-        Long entryId = Long.parseLong(parts[parts.length - 1]);
+        Long entryId;
+        try {
+            entryId = Long.parseLong(parts[parts.length - 1]);
+        } catch (NumberFormatException ex) {
+            throw new ResourceNotFoundException("Anomaly not found: " + anomalyId);
+        }
 
         if ("biometric".equals(entityType)) {
             BiometricEntry entry = biometricRepo.findById(entryId)
@@ -146,7 +151,12 @@ public class DataQualityService {
         String[] parts = anomalyId.split("_");
         if (parts.length < 3) return;
         String entityType = parts[0];
-        Long entryId = Long.parseLong(parts[parts.length - 1]);
+        Long entryId;
+        try {
+            entryId = Long.parseLong(parts[parts.length - 1]);
+        } catch (NumberFormatException ex) {
+            return;
+        }
 
         if ("biometric".equals(entityType)) {
             biometricRepo.findById(entryId).ifPresent(b -> {

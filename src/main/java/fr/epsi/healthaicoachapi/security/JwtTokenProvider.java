@@ -2,6 +2,7 @@ package fr.epsi.healthaicoachapi.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,9 +21,19 @@ import java.nio.charset.StandardCharsets;
 public class JwtTokenProvider {
 
     private static final Logger log = LoggerFactory.getLogger(JwtTokenProvider.class);
+    private static final int MIN_SECRET_BYTES = 64;
 
     @Value("${app.jwt.secret}")
     private String jwtSecret;
+
+    @PostConstruct
+    void validateSecret() {
+        int length = jwtSecret != null ? jwtSecret.getBytes(StandardCharsets.UTF_8).length : 0;
+        if (length < MIN_SECRET_BYTES) {
+            throw new IllegalStateException(
+                    "app.jwt.secret must be at least " + MIN_SECRET_BYTES + " bytes for HS512 (got " + length + ")");
+        }
+    }
 
     private SecretKey getSigningKey() {
         return new SecretKeySpec(jwtSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA512");
