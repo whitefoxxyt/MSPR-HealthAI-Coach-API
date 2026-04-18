@@ -24,6 +24,19 @@ public interface BiometricEntryRepository extends JpaRepository<BiometricEntry, 
     @Query("SELECT b FROM BiometricEntry b WHERE b.heartRateMax > :threshold OR b.bmi > :bmiMax OR (b.bmi IS NOT NULL AND b.bmi < :bmiMin)")
     List<BiometricEntry> findOutliers(int threshold, BigDecimal bmiMax, BigDecimal bmiMin);
 
+    @Query("""
+        SELECT b FROM BiometricEntry b
+        WHERE (b.weightKg IS NOT NULL AND (b.weightKg < :minWeight OR b.weightKg > :maxWeight))
+           OR (b.heightCm IS NOT NULL AND (b.heightCm < :minHeight OR b.heightCm > :maxHeight))
+           OR (b.fatPercentage IS NOT NULL AND (b.fatPercentage < :minFat OR b.fatPercentage > :maxFat))
+           OR (b.heartRateRest IS NOT NULL AND (b.heartRateRest < :minHrRest OR b.heartRateRest > :maxHrRest))
+    """)
+    List<BiometricEntry> findPhysiologicalOutliers(
+            @Param("minWeight") BigDecimal minWeight, @Param("maxWeight") BigDecimal maxWeight,
+            @Param("minHeight") BigDecimal minHeight, @Param("maxHeight") BigDecimal maxHeight,
+            @Param("minFat") BigDecimal minFat, @Param("maxFat") BigDecimal maxFat,
+            @Param("minHrRest") Integer minHrRest, @Param("maxHrRest") Integer maxHrRest);
+
     @Query("SELECT DISTINCT b.source FROM BiometricEntry b WHERE b.source IS NOT NULL ORDER BY b.source")
     List<String> findDistinctSources();
 

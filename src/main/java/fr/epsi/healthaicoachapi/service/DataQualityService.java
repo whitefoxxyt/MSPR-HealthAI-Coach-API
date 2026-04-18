@@ -26,6 +26,27 @@ public class DataQualityService {
     private static final BigDecimal BMI_MIN = new BigDecimal("10");
     private static final int HEART_RATE_MAX_THRESHOLD = 200;
 
+    // Seuils physiologiques biometric_entries (colonnes weight_kg, height_cm, fat_percentage, heart_rate_rest)
+    private static final BigDecimal WEIGHT_MIN = new BigDecimal("30");
+    private static final BigDecimal WEIGHT_MAX = new BigDecimal("300");
+    private static final BigDecimal HEIGHT_MIN = new BigDecimal("100");
+    private static final BigDecimal HEIGHT_MAX = new BigDecimal("250");
+    private static final BigDecimal FAT_MIN = new BigDecimal("3");
+    private static final BigDecimal FAT_MAX = new BigDecimal("60");
+    private static final int HR_REST_MIN = 30;
+    private static final int HR_REST_MAX = 130;
+
+    // Seuils nutrition_entries (par entree)
+    private static final BigDecimal PROTEIN_MAX = new BigDecimal("500");
+    private static final BigDecimal CARBS_MAX = new BigDecimal("1000");
+    private static final BigDecimal FAT_G_MAX = new BigDecimal("500");
+    private static final BigDecimal SODIUM_MAX = new BigDecimal("10000");
+
+    // Seuils activity exercise_entries
+    private static final BigDecimal DURATION_MAX = new BigDecimal("600"); // 10h
+    private static final BigDecimal CALORIES_BURNED_MAX = new BigDecimal("3000");
+    private static final int STEPS_MAX = 100_000;
+
     private final UserRepository userRepository;
     private final BiometricEntryRepository biometricRepo;
     private final NutritionEntryRepository nutritionRepo;
@@ -91,9 +112,10 @@ public class DataQualityService {
     public List<DataAnomalyDTO> detectAnomalies() {
         List<DataAnomalyDTO> anomalies = new ArrayList<>();
 
-        List<BiometricEntry> biometricOutliers = biometricRepo.findOutliers(
+        // ---- Biometric : HR max + BMI (existant) ----
+        List<BiometricEntry> hrBmiOutliers = biometricRepo.findOutliers(
                 HEART_RATE_MAX_THRESHOLD, BMI_MAX, BMI_MIN);
-        for (BiometricEntry b : biometricOutliers) {
+        for (BiometricEntry b : hrBmiOutliers) {
             if (b.getHeartRateMax() != null && b.getHeartRateMax() > HEART_RATE_MAX_THRESHOLD) {
                 anomalies.add(buildAnomaly(
                         "biometric_hr_" + b.getId(), "outlier", "biometric", String.valueOf(b.getId()),
@@ -108,6 +130,42 @@ public class DataQualityService {
             }
         }
 
+        // ---- Biometric : poids, taille, masse grasse, FC repos (physiologiques) ----
+        List<BiometricEntry> physioOutliers = biometricRepo.findPhysiologicalOutliers(
+                WEIGHT_MIN, WEIGHT_MAX, HEIGHT_MIN, HEIGHT_MAX,
+                FAT_MIN, FAT_MAX, HR_REST_MIN, HR_REST_MAX);
+        for (BiometricEntry b : physioOutliers) {
+            if (b.getWeightKg() != null &&
+                    (b.getWeightKg().compareTo(WEIGHT_MIN) < 0 || b.getWeightKg().compareTo(WEIGHT_MAX) > 0)) {
+                anomalies.add(buildAnomaly(
+                        "biometric_weight_" + b.getId(), "outlier", "biometric", String.valueOf(b.getId()),
+                        "weightKg", b.getWeightKg().toPlainString(), "70",
+                        b.getCreatedAt(), "medium"));
+            }
+            if (b.getHeightCm() != null &&
+                    (b.getHeightCm().compareTo(HEIGHT_MIN) < 0 || b.getHeightCm().compareTo(HEIGHT_MAX) > 0)) {
+                anomalies.add(buildAnomaly(
+                        "biometric_height_" + b.getId(), "outlier", "biometric", String.valueOf(b.getId()),
+                        "heightCm", b.getHeightCm().toPlainString(), "170",
+                        b.getCreatedAt(), "medium"));
+            }
+            if (b.getFatPercentage() != null &&
+                    (b.getFatPercentage().compareTo(FAT_MIN) < 0 || b.getFatPercentage().compareTo(FAT_MAX) > 0)) {
+                anomalies.add(buildAnomaly(
+                        "biometric_fat_" + b.getId(), "outlier", "biometric", String.valueOf(b.getId()),
+                        "fatPercentage", b.getFatPercentage().toPlainString(), "20",
+                        b.getCreatedAt(), "medium"));
+            }
+            if (b.getHeartRateRest() != null &&
+                    (b.getHeartRateRest() < HR_REST_MIN || b.getHeartRateRest() > HR_REST_MAX)) {
+                anomalies.add(buildAnomaly(
+                        "biometric_hrrest_" + b.getId(), "outlier", "biometric", String.valueOf(b.getId()),
+                        "heartRateRest", String.valueOf(b.getHeartRateRest()), "65",
+                        b.getCreatedAt(), "high"));
+            }
+        }
+
+        // ---- Nutrition : calories (existant) ----
         List<NutritionEntry> calorieOutliers = nutritionRepo.findCalorieOutliers(MAX_CALORIES);
         for (NutritionEntry n : calorieOutliers) {
             anomalies.add(buildAnomaly(
@@ -116,12 +174,71 @@ public class DataQualityService {
                     n.getCreatedAt(), "high"));
         }
 
+        // ---- Nutrition : macros (proteines, glucides, lipides, sodium) ----
+        List<NutritionEntry> macroOutliers = nutritionRepo.findMacroOutliers(
+                PROTEIN_MAX, CARBS_MAX, FAT_G_MAX, SODIUM_MAX);
+        for (NutritionEntry n : macroOutliers) {
+            if (n.getProteinG() != null &&
+                    (n.getProteinG().signum() < 0 || n.getProteinG().compareTo(PROTEIN_MAX) > 0)) {
+                anomalies.add(buildAnomaly(
+                        "nutrition_protein_" + n.getId(), "outlier", "nutrition", String.valueOf(n.getId()),
+                        "proteinG", n.getProteinG().toPlainString(), "25",
+                        n.getCreatedAt(), "medium"));
+            }
+            if (n.getCarbsG() != null &&
+                    (n.getCarbsG().signum() < 0 || n.getCarbsG().compareTo(CARBS_MAX) > 0)) {
+                anomalies.add(buildAnomaly(
+                        "nutrition_carbs_" + n.getId(), "outlier", "nutrition", String.valueOf(n.getId()),
+                        "carbsG", n.getCarbsG().toPlainString(), "60",
+                        n.getCreatedAt(), "medium"));
+            }
+            if (n.getFatG() != null &&
+                    (n.getFatG().signum() < 0 || n.getFatG().compareTo(FAT_G_MAX) > 0)) {
+                anomalies.add(buildAnomaly(
+                        "nutrition_fat_" + n.getId(), "outlier", "nutrition", String.valueOf(n.getId()),
+                        "fatG", n.getFatG().toPlainString(), "20",
+                        n.getCreatedAt(), "medium"));
+            }
+            if (n.getSodiumMg() != null &&
+                    (n.getSodiumMg().signum() < 0 || n.getSodiumMg().compareTo(SODIUM_MAX) > 0)) {
+                anomalies.add(buildAnomaly(
+                        "nutrition_sodium_" + n.getId(), "outlier", "nutrition", String.valueOf(n.getId()),
+                        "sodiumMg", n.getSodiumMg().toPlainString(), "500",
+                        n.getCreatedAt(), "high"));
+            }
+        }
+
+        // ---- Exercise : duration, calories, steps (activite) ----
+        List<ExerciseEntry> activityOutliers = exerciseRepo.findActivityOutliers(
+                DURATION_MAX, CALORIES_BURNED_MAX, STEPS_MAX);
+        for (ExerciseEntry e : activityOutliers) {
+            if (e.getDurationMin() != null && e.getDurationMin().compareTo(DURATION_MAX) > 0) {
+                anomalies.add(buildAnomaly(
+                        "exercise_dur_" + e.getId(), "outlier", "exercise", String.valueOf(e.getId()),
+                        "durationMin", e.getDurationMin().toPlainString(), "60",
+                        e.getCreatedAt(), "medium"));
+            }
+            if (e.getCaloriesBurned() != null && e.getCaloriesBurned().compareTo(CALORIES_BURNED_MAX) > 0) {
+                anomalies.add(buildAnomaly(
+                        "exercise_cal_" + e.getId(), "outlier", "exercise", String.valueOf(e.getId()),
+                        "caloriesBurned", e.getCaloriesBurned().toPlainString(), "500",
+                        e.getCreatedAt(), "medium"));
+            }
+            if (e.getSteps() != null && e.getSteps() > STEPS_MAX) {
+                anomalies.add(buildAnomaly(
+                        "exercise_steps_" + e.getId(), "outlier", "exercise", String.valueOf(e.getId()),
+                        "steps", String.valueOf(e.getSteps()), "8000",
+                        e.getCreatedAt(), "medium"));
+            }
+        }
+
         return anomalies;
     }
 
     @Transactional
     public DataAnomalyDTO resolveAnomaly(String anomalyId, Map<String, Object> updates) {
-        // Parse anomaly id format: "biometric_hr_{entryId}", "biometric_bmi_{entryId}", "nutrition_cal_{entryId}"
+        // Format anomaly id : "{entityType}_{checkType}_{entryId}"
+        // entityType : biometric | nutrition | exercise
         String[] parts = anomalyId.split("_");
         if (parts.length < 3) {
             throw new ResourceNotFoundException("Anomaly not found: " + anomalyId);
@@ -129,16 +246,26 @@ public class DataQualityService {
         String entityType = parts[0];
         Long entryId = Long.parseLong(parts[parts.length - 1]);
 
-        if ("biometric".equals(entityType)) {
-            BiometricEntry entry = biometricRepo.findById(entryId)
-                    .orElseThrow(() -> new ResourceNotFoundException("BiometricEntry", entryId));
-            entry.setStatus("CLEANED");
-            biometricRepo.save(entry);
-        } else if ("nutrition".equals(entityType)) {
-            NutritionEntry entry = nutritionRepo.findById(entryId)
-                    .orElseThrow(() -> new ResourceNotFoundException("NutritionEntry", entryId));
-            entry.setStatus("CLEANED");
-            nutritionRepo.save(entry);
+        switch (entityType) {
+            case "biometric" -> {
+                BiometricEntry entry = biometricRepo.findById(entryId)
+                        .orElseThrow(() -> new ResourceNotFoundException("BiometricEntry", entryId));
+                entry.setStatus("CLEANED");
+                biometricRepo.save(entry);
+            }
+            case "nutrition" -> {
+                NutritionEntry entry = nutritionRepo.findById(entryId)
+                        .orElseThrow(() -> new ResourceNotFoundException("NutritionEntry", entryId));
+                entry.setStatus("CLEANED");
+                nutritionRepo.save(entry);
+            }
+            case "exercise" -> {
+                ExerciseEntry entry = exerciseRepo.findById(entryId)
+                        .orElseThrow(() -> new ResourceNotFoundException("ExerciseEntry", entryId));
+                entry.setStatus("CLEANED");
+                exerciseRepo.save(entry);
+            }
+            default -> throw new ResourceNotFoundException("Unknown entity type: " + entityType);
         }
 
         DataAnomalyDTO dto = new DataAnomalyDTO();
@@ -154,16 +281,20 @@ public class DataQualityService {
         String entityType = parts[0];
         Long entryId = Long.parseLong(parts[parts.length - 1]);
 
-        if ("biometric".equals(entityType)) {
-            biometricRepo.findById(entryId).ifPresent(b -> {
+        switch (entityType) {
+            case "biometric" -> biometricRepo.findById(entryId).ifPresent(b -> {
                 b.setStatus("REJECTED");
                 biometricRepo.save(b);
             });
-        } else if ("nutrition".equals(entityType)) {
-            nutritionRepo.findById(entryId).ifPresent(n -> {
+            case "nutrition" -> nutritionRepo.findById(entryId).ifPresent(n -> {
                 n.setStatus("REJECTED");
                 nutritionRepo.save(n);
             });
+            case "exercise" -> exerciseRepo.findById(entryId).ifPresent(e -> {
+                e.setStatus("REJECTED");
+                exerciseRepo.save(e);
+            });
+            default -> { /* ignore */ }
         }
     }
 

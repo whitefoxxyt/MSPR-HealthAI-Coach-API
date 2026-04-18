@@ -24,6 +24,19 @@ public interface NutritionEntryRepository extends JpaRepository<NutritionEntry, 
     @Query("SELECT n FROM NutritionEntry n WHERE n.calories > :maxCalories OR n.calories < 0")
     List<NutritionEntry> findCalorieOutliers(BigDecimal maxCalories);
 
+    @Query("""
+        SELECT n FROM NutritionEntry n
+        WHERE (n.proteinG IS NOT NULL AND (n.proteinG < 0 OR n.proteinG > :maxProtein))
+           OR (n.carbsG IS NOT NULL AND (n.carbsG < 0 OR n.carbsG > :maxCarbs))
+           OR (n.fatG IS NOT NULL AND (n.fatG < 0 OR n.fatG > :maxFat))
+           OR (n.sodiumMg IS NOT NULL AND (n.sodiumMg < 0 OR n.sodiumMg > :maxSodium))
+    """)
+    List<NutritionEntry> findMacroOutliers(
+            @Param("maxProtein") BigDecimal maxProtein,
+            @Param("maxCarbs") BigDecimal maxCarbs,
+            @Param("maxFat") BigDecimal maxFat,
+            @Param("maxSodium") BigDecimal maxSodium);
+
     @Query("SELECT n.mealType, AVG(n.calories) FROM NutritionEntry n WHERE n.mealType IS NOT NULL GROUP BY n.mealType")
     List<Object[]> avgCaloriesByMealType();
 

@@ -32,6 +32,17 @@ public interface ExerciseEntryRepository extends JpaRepository<ExerciseEntry, Lo
     @Query("SELECT COUNT(e) FROM ExerciseEntry e WHERE e.heartRateAvg IS NOT NULL AND e.heartRateAvg >= 150")
     long countHighIntensity();
 
+    @Query("""
+        SELECT e FROM ExerciseEntry e
+        WHERE (e.durationMin IS NOT NULL AND e.durationMin > :maxDuration)
+           OR (e.caloriesBurned IS NOT NULL AND e.caloriesBurned > :maxCalories)
+           OR (e.steps IS NOT NULL AND e.steps > :maxSteps)
+    """)
+    List<ExerciseEntry> findActivityOutliers(
+            @Param("maxDuration") java.math.BigDecimal maxDuration,
+            @Param("maxCalories") java.math.BigDecimal maxCalories,
+            @Param("maxSteps") Integer maxSteps);
+
     @Query(value = "SELECT DATE(created_at) AS day, COUNT(*) AS cnt FROM exercise_entries WHERE created_at >= :since GROUP BY DATE(created_at) ORDER BY day", nativeQuery = true)
     List<Object[]> countByDaySince(@Param("since") LocalDateTime since);
 
