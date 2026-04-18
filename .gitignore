@@ -31,3 +31,11 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### JaCoCo ###
+*.exec
+jacoco.xml
+
+### SonarQube ###
+.sonar/
+.scannerwork/

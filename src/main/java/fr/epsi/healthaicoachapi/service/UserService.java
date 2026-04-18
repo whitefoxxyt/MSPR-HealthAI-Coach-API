@@ -31,9 +31,33 @@ public class UserService {
 
     @Transactional
     public UserDTO getUserByEmail(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User with email " + email + " not found"));
-        return mapToDTO(user);
+        return userRepository.findByEmail(email)
+                .map(this::mapToDTO)
+                .orElseGet(() -> provisionUser(email, null));
+    }
+
+    /**
+     * Crée un profil minimal pour un utilisateur authentifié via Better-Auth
+     * dont le compte n'existe pas encore dans la base healthai.
+     * Le profil peut être complété ensuite via updateUserProfile().
+     */
+    @Transactional
+    public UserDTO getOrProvisionUser(String email, String name) {
+        return userRepository.findByEmail(email)
+                .map(this::mapToDTO)
+                .orElseGet(() -> provisionUser(email, name));
+    }
+
+    private UserDTO provisionUser(String email, String name) {
+        String username = (name != null && !name.isBlank()) ? name : email.split("@")[0];
+        User newUser = User.builder()
+                .email(email)
+                .username(username)
+                .passwordHash("BETTER_AUTH_MANAGED")
+                .role("USER")
+                .build();
+        log.info("Auto-provisioning profile for Better-Auth user: {}", email);
+        return mapToDTO(userRepository.save(newUser));
     }
 
     @Transactional

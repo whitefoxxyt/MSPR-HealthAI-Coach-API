@@ -26,10 +26,12 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    @Operation(summary = "Récupère le profil de l'utilisateur connecté")
+    @Operation(summary = "Récupère le profil de l'utilisateur connecté (auto-provisioning si 1er appel)")
     public ResponseEntity<UserDTO> getCurrentUser() {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        UserDTO user = userService.getUserByEmail(email);
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = (String) auth.getPrincipal();
+        String name = (String) auth.getCredentials();
+        UserDTO user = userService.getOrProvisionUser(email, name);
         return ResponseEntity.ok(user);
     }
 

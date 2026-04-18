@@ -1,5 +1,6 @@
 package fr.epsi.healthaicoachapi.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class UserDTO {
@@ -10,8 +11,8 @@ public class UserDTO {
     private Boolean isPremium;
     private Integer age;
     private String gender;
-    private Double weightKg;
-    private Double heightCm;
+    private BigDecimal weightKg;
+    private BigDecimal heightCm;
     private String objective;
     private LocalDateTime createdAt;
     private LocalDateTime lastActivity;
@@ -20,7 +21,7 @@ public class UserDTO {
     }
 
     public UserDTO(Long id, String email, String username, String role, Boolean isPremium, Integer age, String gender,
-                   Double weightKg, Double heightCm, String objective, LocalDateTime createdAt,
+                   BigDecimal weightKg, BigDecimal heightCm, String objective, LocalDateTime createdAt,
                    LocalDateTime lastActivity) {
         this.id = id;
         this.email = email;
@@ -96,19 +97,19 @@ public class UserDTO {
         this.gender = gender;
     }
 
-    public Double getWeightKg() {
+    public BigDecimal getWeightKg() {
         return weightKg;
     }
 
-    public void setWeightKg(Double weightKg) {
+    public void setWeightKg(BigDecimal weightKg) {
         this.weightKg = weightKg;
     }
 
-    public Double getHeightCm() {
+    public BigDecimal getHeightCm() {
         return heightCm;
     }
 
-    public void setHeightCm(Double heightCm) {
+    public void setHeightCm(BigDecimal heightCm) {
         this.heightCm = heightCm;
     }
 
@@ -144,8 +145,8 @@ public class UserDTO {
         private Boolean isPremium;
         private Integer age;
         private String gender;
-        private Double weightKg;
-        private Double heightCm;
+        private BigDecimal weightKg;
+        private BigDecimal heightCm;
         private String objective;
         private LocalDateTime createdAt;
         private LocalDateTime lastActivity;
@@ -185,12 +186,12 @@ public class UserDTO {
             return this;
         }
 
-        public Builder weightKg(Double weightKg) {
+        public Builder weightKg(BigDecimal weightKg) {
             this.weightKg = weightKg;
             return this;
         }
 
-        public Builder heightCm(Double heightCm) {
+        public Builder heightCm(BigDecimal heightCm) {
             this.heightCm = heightCm;
             return this;
         }

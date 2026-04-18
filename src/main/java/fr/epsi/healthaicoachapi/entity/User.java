@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
@@ -22,31 +23,37 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String username;
 
-    @Column(nullable = false)
+    @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
     @Column(nullable = false)
     private String role = "USER";
 
-    @Column(nullable = false)
+    @Column(name = "is_premium", nullable = false)
     private Boolean isPremium = false;
 
     private Integer age;
     private String gender;
-    private Double weightKg;
-    private Double heightCm;
+
+    @Column(name = "weight_kg")
+    private BigDecimal weightKg;
+
+    @Column(name = "height_cm")
+    private BigDecimal heightCm;
+
     private String objective;
 
-    @Column(nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Column(name = "last_activity")
     private LocalDateTime lastActivity;
 
     public User() {
     }
 
     public User(Long id, String email, String username, String passwordHash, String role, Boolean isPremium, Integer age,
-                String gender, Double weightKg, Double heightCm, String objective, LocalDateTime createdAt,
+                String gender, BigDecimal weightKg, BigDecimal heightCm, String objective, LocalDateTime createdAt,
                 LocalDateTime lastActivity) {
         this.id = id;
         this.email = email;
@@ -131,19 +138,19 @@ public class User implements UserDetails {
         this.gender = gender;
     }
 
-    public Double getWeightKg() {
+    public BigDecimal getWeightKg() {
         return weightKg;
     }
 
-    public void setWeightKg(Double weightKg) {
+    public void setWeightKg(BigDecimal weightKg) {
         this.weightKg = weightKg;
     }
 
-    public Double getHeightCm() {
+    public BigDecimal getHeightCm() {
         return heightCm;
     }
 
-    public void setHeightCm(Double heightCm) {
+    public void setHeightCm(BigDecimal heightCm) {
         this.heightCm = heightCm;
     }
 
@@ -215,8 +222,8 @@ public class User implements UserDetails {
         private Boolean isPremium = false;
         private Integer age;
         private String gender;
-        private Double weightKg;
-        private Double heightCm;
+        private BigDecimal weightKg;
+        private BigDecimal heightCm;
         private String objective;
         private LocalDateTime createdAt = LocalDateTime.now();
         private LocalDateTime lastActivity;
@@ -261,12 +268,12 @@ public class User implements UserDetails {
             return this;
         }
 
-        public Builder weightKg(Double weightKg) {
+        public Builder weightKg(BigDecimal weightKg) {
             this.weightKg = weightKg;
             return this;
         }
 
-        public Builder heightCm(Double heightCm) {
+        public Builder heightCm(BigDecimal heightCm) {
             this.heightCm = heightCm;
             return this;
         }

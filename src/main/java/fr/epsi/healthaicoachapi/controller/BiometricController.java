@@ -1,6 +1,7 @@
 package fr.epsi.healthaicoachapi.controller;
 
 import fr.epsi.healthaicoachapi.dto.BiometricEntryDTO;
+import fr.epsi.healthaicoachapi.entity.BiometricEntry;
 import fr.epsi.healthaicoachapi.service.BiometricService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -55,7 +56,7 @@ public class BiometricController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Met à jour une entrée biométrique")
-    public ResponseEntity<BiometricEntryDTO> updateBiometric(@PathVariable Long id, @Valid @RequestBody BiometricEntryDTO dto) {
+    public ResponseEntity<BiometricEntryDTO> updateBiometric(@PathVariable Long id, @RequestBody BiometricEntryDTO dto) {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         BiometricEntryDTO updated = biometricService.updateBiometric(id, dto, email);
         return ResponseEntity.ok(updated);

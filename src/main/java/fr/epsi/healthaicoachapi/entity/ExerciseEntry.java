@@ -17,11 +17,21 @@ public class ExerciseEntry {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @Column(name = "workout_type")
     private String workoutType;
+
+    @Column(name = "duration_min")
     private BigDecimal durationMin;
+
+    @Column(name = "calories_burned")
     private BigDecimal caloriesBurned;
+
     private Integer steps;
+
+    @Column(name = "heart_rate_avg")
     private Integer heartRateAvg;
+
+    @Column(name = "heart_rate_max")
     private Integer heartRateMax;
 
     @Column(nullable = false)
@@ -30,7 +40,7 @@ public class ExerciseEntry {
     @Column(nullable = false)
     private String status = "BRUT";
 
-    @Column(nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public ExerciseEntry() {

@@ -13,19 +13,19 @@ public class Exercise {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column(name = "external_id", unique = true, nullable = false)
     private String externalId;
 
     @Column(nullable = false)
     private String name;
 
-    @Column(columnDefinition = "TEXT[]")
+    @Column(name = "body_parts", columnDefinition = "TEXT[]")
     private List<String> bodyParts;
 
-    @Column(columnDefinition = "TEXT[]")
+    @Column(name = "target_muscles", columnDefinition = "TEXT[]")
     private List<String> targetMuscles;
 
-    @Column(columnDefinition = "TEXT[]")
+    @Column(name = "secondary_muscles", columnDefinition = "TEXT[]")
     private List<String> secondaryMuscles;
 
     @Column(columnDefinition = "TEXT[]")
@@ -34,12 +34,13 @@ public class Exercise {
     @Column(columnDefinition = "TEXT")
     private String instructions;
 
+    @Column(name = "gif_url")
     private String gifUrl;
 
     @Column(nullable = false)
     private String source = "EXERCISEDB";
 
-    @Column(nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public Exercise() {
