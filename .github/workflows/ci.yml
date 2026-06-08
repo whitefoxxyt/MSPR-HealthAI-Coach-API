@@ -11,9 +11,13 @@ jobs:
   test:
     name: Tests unitaires (Maven)
     runs-on: ubuntu-latest
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - name: Récupération du code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Installation du JDK 21 (Temurin)
         uses: actions/setup-java@v4
@@ -24,6 +28,10 @@ jobs:
 
       - name: Exécution des tests
         run: ./mvnw test
+
+      - name: Analyse SonarCloud (active si le secret SONAR_TOKEN est configure)
+        if: ${{ env.SONAR_TOKEN != '' }}
+        run: ./mvnw -B verify sonar:sonar -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=${{ env.SONAR_TOKEN }}
 
   publish:
     name: Publication de l'image Docker
